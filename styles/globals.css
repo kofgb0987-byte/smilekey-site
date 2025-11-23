@@ -1,0 +1,168 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  padding: 0;
+  margin: 0;
+  font-family: "Noto Sans KR", -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Roboto, system-ui, sans-serif;
+  background: #f5f5f5; /* 연한 회색 배경 */
+  color: #111111;      /* 진한 글자색 */
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+body {
+  line-height: 1.5;
+  font-size: 16px; /* 기본 글씨 크게 */
+}
+
+.container {
+  max-width: 600px;        /* 너무 넓지 않게 */
+  margin: 0 auto;
+  padding: 24px 16px 40px;
+}
+
+/* 상단 제목 영역 */
+.header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.header-title {
+  font-size: 28px;
+  font-weight: 800;
+  margin-bottom: 4px;
+}
+
+.header-sub {
+  font-size: 16px;
+  color: #444444;
+}
+
+/* 카드 박스 (정보 블럭) */
+.card {
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1px solid #e0e0e0;
+  padding: 16px 18px;
+  margin-bottom: 16px;
+}
+
+/* 큰 전화 버튼 */
+.call-button {
+  display: block;
+  width: 100%;
+  border-radius: 999px;
+  border: none;
+  padding: 14px 18px;
+  font-size: 20px;
+  font-weight: 800;
+  background: #22c55e; /* 초록색 */
+  color: #ffffff;
+  text-align: center;
+  cursor: pointer;
+}
+
+.call-button:hover {
+  background: #16a34a;
+}
+
+.call-caption {
+  margin-top: 6px;
+  font-size: 14px;
+  text-align: center;
+  color: #555555;
+}
+
+/* 섹션 제목 */
+.section-title {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+/* 가게 정보 리스트 */
+.info-list {
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+  font-size: 16px;
+}
+
+.info-item {
+  margin-bottom: 6px;
+}
+
+.info-label {
+  display: inline-block;
+  width: 64px;      /* "전화" "주소" 정렬 */
+  font-weight: 700;
+}
+
+/* 서비스 리스트 */
+.service-list {
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+  font-size: 15px;
+}
+
+.service-item {
+  margin-bottom: 8px;
+}
+
+/* 이용 안내 */
+.notice-list {
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+  font-size: 15px;
+}
+
+.notice-item {
+  margin-bottom: 10px;
+}
+
+/* 푸터 */
+.footer {
+  font-size: 12px;
+  color: #777777;
+  text-align: center;
+  margin-top: 24px;
+}
+
+/* 핸드폰에서 아래에 고정된 전화 바 (심플하게) */
+.fixed-call-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #22c55e;
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  z-index: 50;
+}
+
+.fixed-call-bar-text {
+  font-size: 16px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+/* 화면 폭 넓을 때(PC)는 고정바 안 보여도 됨 */
+@media (min-width: 768px) {
+  .fixed-call-bar {
+    display: none;
+  }
+}
