@@ -161,7 +161,7 @@ export default function Home({ youtubeItems, blogItems }) {
           )}
         </section>
 
-        {/* 이용 안내 (설명은 최대한 간단하게) */}
+        {/* 이용 안내 */}
         <section className="card">
           <h2 className="section-title">이용 안내</h2>
           <ul className="notice-list">
@@ -213,8 +213,8 @@ export async function getServerSideProps() {
   let youtubeItems = [];
   let blogItems = [];
 
+  // === 유튜브 ===
   try {
-    // 유튜브
     const ytRes = await fetch(youtubeFeedUrl);
     const ytXml = await ytRes.text();
     const ytData = parser.parse(ytXml);
@@ -246,8 +246,8 @@ export async function getServerSideProps() {
     console.error("YouTube RSS error:", e);
   }
 
+  // === 네이버 블로그 ===
   try {
-    // 네이버 블로그
     const blogRes = await fetch(blogFeedUrl);
     const blogXml = await blogRes.text();
     const blogData = parser.parse(blogXml);
@@ -264,11 +264,18 @@ export async function getServerSideProps() {
       const pubDate = item.pubDate || "";
       const description = item.description || "";
 
-      // description 안에서 첫 번째 이미지 src 추출
+      // description 안에서 첫 번째 이미지 src 추출 (작/큰따옴표 모두)
       let thumb = "";
-      const imgMatch = description.match(/<img[^>]+src="([^">]+)"/i);
+      const imgMatch = description.match(
+        /<img[^>]+src=['"]([^'">]+)['"]/i
+      );
       if (imgMatch && imgMatch[1]) {
         thumb = imgMatch[1];
+      }
+
+      // http -> https
+      if (thumb.startsWith("http://")) {
+        thumb = thumb.replace("http://", "https://");
       }
 
       // 텍스트만 추출 (태그 제거)
@@ -276,11 +283,16 @@ export async function getServerSideProps() {
       const excerpt =
         text.length > 60 ? text.slice(0, 60).trim() + "…" : text;
 
+      // 프록시 통해서 이미지 제공
+      const proxyThumb = thumb
+        ? `/api/image-proxy?url=${encodeURIComponent(thumb)}`
+        : "";
+
       return {
         title,
         link,
         date: pubDate?.slice(0, 16) || "",
-        thumbnail: thumb,
+        thumbnail: proxyThumb,
         excerpt,
       };
     });
