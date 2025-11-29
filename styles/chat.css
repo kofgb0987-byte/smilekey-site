@@ -210,15 +210,17 @@
   padding: 8px 12px;
   font-size: 13px;
   font-family: inherit;
-  resize: none;
-  max-height: 72px;
-  line-height: 1.4;
+
+  /* 이 아래 네 줄 추가 */
+  overflow-y: hidden;        /* 안에서 스크롤 막기 */
+  resize: none;              /* 크기 조절 핸들 제거 */
+  scrollbar-width: none;     /* Firefox */
+  -ms-overflow-style: none;  /* IE, Edge */
 }
 
-.chat-input:focus {
-  outline: none;
-  border-color: #22c55e;
-  box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.2);
+/* Chrome / Safari용 스크롤바 숨기기 */
+.chat-input::-webkit-scrollbar {
+  display: none;
 }
 
 /* 오른쪽 보내기 버튼 (동그란 초록 버튼) */

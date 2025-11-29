@@ -129,18 +129,18 @@ export default function ChatWidget() {
             <div className="chat-messages">
               {/* 상담사가 먼저 말 거는 버블 (로컬 전용, 서버에는 안 저장) */}
               <div className="chat-bubble chat-bubble--admin">
-                <div className="chat-bubble-text">
-                  안녕하세요, 중앙열쇠입니다 🙂{"\n"}
-                  차량{" "}
-                  <strong>차종/연식</strong>,{" "}
-                  <strong>연락처</strong>,{" "}
-                  <strong>대략적인 위치</strong>를
-                  한 번에 적어 주시면 확인 후 바로 안내드릴게요.
-                  {"\n\n"}
-                  예) 2018 그랜저IG / 010-1234-5678 / 동구 검사동 ○○아파트
-                  주차장
-                </div>
-              </div>
+  <div className="chat-bubble-text" style={{ whiteSpace: "pre-line" }}>
+    {`안녕하세요, 중앙열쇠입니다 🙂  
+
+차량 정보를 보내주시면 정확한 안내가 가능합니다.
+
+- 차종 / 연식  
+- 연락처  
+- 대략적인 위치  
+
+예) 2018 그랜저IG / 010-1234-5678 / 동구 검사동 ○○아파트 주차장`}
+  </div>
+</div>
 
               {/* 서버에서 온 메시지들 */}
               {messages.map((m) => (
@@ -169,12 +169,12 @@ export default function ChatWidget() {
   </button> */}
 
   <textarea
-    rows={1}
-    className="chat-input"
-    value={msgInput}
-    onChange={(e) => setMsgInput(e.target.value)}
-    placeholder="차종/연식, 연락처, 위치와 문의 내용을 적어주세요."
-  />
+  rows={1}
+  className="chat-input"
+  value={msgInput}
+  onChange={(e) => setMsgInput(e.target.value)}
+  placeholder="내용을 입력해주세요."
+/>
 
   <button
     type="submit"
