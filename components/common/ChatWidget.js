@@ -26,33 +26,37 @@ export default function ChatWidget() {
 
   // 채팅창 열려있을 때만 3초마다 메시지 폴링
   useEffect(() => {
-    if (!isOpen || !conversationId) return;
+  if (!isOpen || !conversationId) return;
 
-    let timer;
-    const fetchMessages = async () => {
-      try {
-        const res = await fetch(
-          `/api/chat/messages?conversationId=${encodeURIComponent(
-            conversationId
-          )}&t=${Date.now()}`,
-          { cache: "no-store" }
-        );
-        const data = await res.json();
-        if (data.ok && Array.isArray(data.messages)) {
+  let timer;
+  const fetchMessages = async () => {
+    try {
+      const res = await fetch(
+        `/api/chat/messages?conversationId=${encodeURIComponent(
+          conversationId
+        )}&t=${Date.now()}`,
+        { cache: "no-store" }
+      );
+      const data = await res.json();
+      if (data.ok && Array.isArray(data.messages)) {
+        // 🔥 서버에 뭔가 있을 때만 덮어쓰기
+        if (data.messages.length > 0) {
           setMessages(data.messages);
         }
-      } catch (e) {
-        console.error("fetch messages error:", e);
-      } finally {
-        timer = setTimeout(fetchMessages, 3000);
       }
-    };
+    } catch (e) {
+      console.error("fetch messages error:", e);
+    } finally {
+      timer = setTimeout(fetchMessages, 3000);
+    }
+  };
 
-    fetchMessages();
-    return () => {
-      if (timer) clearTimeout(timer);
-    };
-  }, [isOpen, conversationId]);
+  fetchMessages();
+  return () => {
+    if (timer) clearTimeout(timer);
+  };
+}, [isOpen, conversationId]);
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
