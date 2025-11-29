@@ -15,7 +15,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    // 1) 유저 메시지 Redis 저장
+    // 1) 유저 메시지를 Redis에 저장
     await appendMessage(conversationId, {
       id: Date.now().toString(),
       from: "user",
