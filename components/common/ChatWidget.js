@@ -5,22 +5,17 @@ export default function ChatWidget() {
   const [isOpen, setIsOpen] = useState(false);
   const [conversationId, setConversationId] = useState(null);
   const [messages, setMessages] = useState([]);
-
-  const [carInfo, setCarInfo] = useState("");       // 차종/연식
-  const [phone, setPhone] = useState("");           // 연락처
-  const [locationText, setLocationText] = useState(""); // 위치
-  const [msgInput, setMsgInput] = useState("");     // 문의 내용
-
+  const [msgInput, setMsgInput] = useState("");
   const [sending, setSending] = useState(false);
   const [error, setError] = useState("");
 
-  // 대화 ID 생성 (브라우저 localStorage 사용)
+  // 대화 ID 생성 (브라우저 전용)
   useEffect(() => {
     if (typeof window === "undefined") return;
     let cid = window.localStorage.getItem("conversationId");
     if (!cid) {
       cid =
-        (typeof crypto !== "undefined" && crypto.randomUUID)
+        typeof crypto !== "undefined" && crypto.randomUUID
           ? crypto.randomUUID()
           : Date.now().toString(36);
       window.localStorage.setItem("conversationId", cid);
@@ -30,52 +25,51 @@ export default function ChatWidget() {
 
   // 패널 열려 있을 때만 3초마다 메시지 폴링
   useEffect(() => {
-  if (!isOpen || !conversationId) return;
+    if (!isOpen || !conversationId) return;
 
-  let timer;
-  const fetchMessages = async () => {
-    try {
-      const res = await fetch(`/api/chat/messages?conversationId=${conversationId}`);
-      const data = await res.json();
-      if (data.ok && Array.isArray(data.messages)) {
-        // 🔥 서버에 뭔가 쌓였을 때만 덮어쓰기
-        if (data.messages.length > 0) {
-          setMessages(data.messages);
+    let timer;
+    const fetchMessages = async () => {
+      try {
+        const res = await fetch(
+          `/api/chat/messages?conversationId=${conversationId}`
+        );
+        const data = await res.json();
+        if (data.ok && Array.isArray(data.messages)) {
+          // 서버에 데이터가 있을 때만 덮어쓰기 (빈 배열이면 유지)
+          if (data.messages.length > 0) {
+            setMessages(data.messages);
+          }
         }
+      } catch (e) {
+        console.error("fetch messages error:", e);
+      } finally {
+        timer = setTimeout(fetchMessages, 3000);
       }
-    } catch (e) {
-      console.error("fetch messages error:", e);
-    } finally {
-      timer = setTimeout(fetchMessages, 3000);
-    }
-  };
+    };
 
-  fetchMessages();
-  return () => {
-    if (timer) clearTimeout(timer);
-  };
-}, [isOpen, conversationId]);
+    fetchMessages();
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
+  }, [isOpen, conversationId]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!msgInput.trim() || !conversationId) return;
+    const text = msgInput.trim();
+    if (!text || !conversationId || sending) return;
 
     setSending(true);
     setError("");
-
-    const text = msgInput.trim();
     setMsgInput("");
 
-    // 내 메시지 먼저 화면에 추가 (낙관적 업데이트)
-    setMessages((prev) => [
-      ...prev,
-      {
-        id: `${Date.now()}-local`,
-        from: "user",
-        text,
-        createdAt: new Date().toISOString(),
-      },
-    ]);
+    // 내 메시지를 먼저 화면에 추가
+    const localMsg = {
+      id: `${Date.now()}-local`,
+      from: "user",
+      text,
+      createdAt: new Date().toISOString(),
+    };
+    setMessages((prev) => [...prev, localMsg]);
 
     try {
       await fetch("/api/chat/send-user", {
@@ -83,9 +77,6 @@ export default function ChatWidget() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           conversationId,
-          carInfo,
-          phone,
-          location: locationText,
           message: text,
         }),
       });
@@ -99,7 +90,7 @@ export default function ChatWidget() {
 
   return (
     <>
-      {/* 오른쪽 아래 말풍선 버튼 */}
+      {/* 오른쪽 아래 플로팅 버튼 */}
       <button
         type="button"
         className="chat-toggle-btn"
@@ -122,13 +113,36 @@ export default function ChatWidget() {
           </div>
 
           <div className="chat-panel-body">
+            {/* 고정 안내 문구 (상단) */}
             <p className="chat-panel-desc">
-              차종/연식, 연락처, 대략적인 위치를 남겨주시면<br />
-              <strong>가능 여부와 예상 비용을 보고 빠르게 연락드릴게요.</strong>
+              아래 채팅창에 편하게 문의 남겨주세요.
+              <br />
+              <strong>
+                차량 차종/연식, 연락처, 대략적인 위치
+              </strong>
+              를 함께 적어주시면
+              <br />
+              가능한지와 예상 비용을 보고 연락드립니다.
             </p>
 
-            {/* 메시지 영역 */}
+            {/* 실제 채팅창 */}
             <div className="chat-messages">
+              {/* 상담사가 먼저 말 거는 버블 (로컬 전용, 서버에는 안 저장) */}
+              <div className="chat-bubble chat-bubble--admin">
+                <div className="chat-bubble-text">
+                  안녕하세요, 중앙열쇠입니다 🙂{"\n"}
+                  차량{" "}
+                  <strong>차종/연식</strong>,{" "}
+                  <strong>연락처</strong>,{" "}
+                  <strong>대략적인 위치</strong>를
+                  한 번에 적어 주시면 확인 후 바로 안내드릴게요.
+                  {"\n\n"}
+                  예) 2018 그랜저IG / 010-1234-5678 / 동구 검사동 ○○아파트
+                  주차장
+                </div>
+              </div>
+
+              {/* 서버에서 온 메시지들 */}
               {messages.map((m) => (
                 <div
                   key={m.id}
@@ -144,59 +158,33 @@ export default function ChatWidget() {
               ))}
             </div>
 
-            {/* 입력 폼 */}
-            <form onSubmit={handleSubmit} className="chat-form">
-              <label className="chat-field">
-                <span className="chat-label">차종 / 연식</span>
-                <input
-                  type="text"
-                  value={carInfo}
-                  onChange={(e) => setCarInfo(e.target.value)}
-                  placeholder="예) 2018 그랜저IG / BMW F10"
-                />
-              </label>
+            {/* 입력 영역 */}
+            {/* 입력 영역 */}
+{error && <div className="chat-error">{error}</div>}
 
-              <label className="chat-field">
-                <span className="chat-label">연락처 (필수)</span>
-                <input
-                  type="tel"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder="예) 010-1234-5678"
-                  required
-                />
-              </label>
+<form onSubmit={handleSubmit} className="chat-input-row">
+  {/* (옵션) 왼쪽에 클립 아이콘 넣고 싶으면 주석 해제 */}
+  {/* <button type="button" className="chat-icon-btn" disabled>
+    📎
+  </button> */}
 
-              <label className="chat-field">
-                <span className="chat-label">위치</span>
-                <input
-                  type="text"
-                  value={locationText}
-                  onChange={(e) => setLocationText(e.target.value)}
-                  placeholder="예) 동구 검사동 / ○○아파트 주차장"
-                />
-              </label>
+  <textarea
+    rows={1}
+    className="chat-input"
+    value={msgInput}
+    onChange={(e) => setMsgInput(e.target.value)}
+    placeholder="차종/연식, 연락처, 위치와 문의 내용을 적어주세요."
+  />
 
-              <label className="chat-field">
-                <span className="chat-label">문의 내용</span>
-                <textarea
-                  rows={3}
-                  value={msgInput}
-                  onChange={(e) => setMsgInput(e.target.value)}
-                  placeholder="예) 스마트키 분실 / 예비키 제작 가능 여부"
-                />
-              </label>
+  <button
+    type="submit"
+    className="chat-send-btn"
+    disabled={sending}
+  >
+    ➤
+  </button>
+</form>
 
-              {error && <div className="chat-error">{error}</div>}
-
-              <button
-                type="submit"
-                className="chat-submit-btn"
-                disabled={sending}
-              >
-                {sending ? "전송 중..." : "문의 보내기"}
-              </button>
-            </form>
           </div>
         </div>
       )}
