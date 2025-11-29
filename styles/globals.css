@@ -1,173 +1,166 @@
+/* ===== 기본 레이아웃 ===== */
 *,
 *::before,
 *::after {
   box-sizing: border-box;
 }
 
-html,
 body {
-  padding: 0;
   margin: 0;
-  font-family: "Noto Sans KR", -apple-system, BlinkMacSystemFont, "Segoe UI",
-    Roboto, system-ui, sans-serif;
-  background: #f5f5f5; /* 연한 회색 배경 */
-  color: #111111;      /* 진한 글자색 */
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo",
+    "Noto Sans KR", sans-serif;
+  background: #f3f4f6; /* 밝은 회색 배경 */
+  color: #111827;
 }
 
 a {
   color: inherit;
-  text-decoration: none;
 }
 
-body {
-  line-height: 1.5;
-  font-size: 16px; /* 기본 글씨 크게 */
-}
-
+/* 모바일 중심 컨테이너 */
 .container {
-  max-width: 600px;        /* 너무 넓지 않게 */
+  max-width: 640px;
   margin: 0 auto;
-  padding: 24px 16px 40px;
+  padding: 16px 16px 80px; /* 하단 전화바 공간 */
 }
 
-/* 상단 제목 영역 */
+/* ===== 헤더 ===== */
 .header {
   text-align: center;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
+}
+
+.header-badge {
+  font-size: 12px;
+  color: #6b7280;
+  margin-bottom: 4px;
 }
 
 .header-title {
   font-size: 28px;
-  font-weight: 800;
-  margin-bottom: 4px;
+  margin: 0 0 4px;
+  background: linear-gradient(120deg, #16a34a, #06b6d4);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
 .header-sub {
-  font-size: 16px;
-  color: #444444;
+  font-size: 14px;
+  color: #4b5563;
+  margin: 0;
 }
 
-/* 카드 박스 (정보 블럭) */
+/* ===== 카드 ===== */
 .card {
   background: #ffffff;
   border-radius: 16px;
-  border: 1px solid #e0e0e0;
-  padding: 16px 18px;
-  margin-bottom: 16px;
+  padding: 16px;
+  margin-bottom: 12px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.06);
 }
 
-/* 큰 전화 버튼 */
+/* ===== 큰 전화 버튼 ===== */
 .call-button {
   display: block;
   width: 100%;
-  border-radius: 999px;
-  border: none;
-  padding: 14px 18px;
-  font-size: 20px;
-  font-weight: 800;
-  background: #22c55e; /* 초록색 */
-  color: #ffffff;
   text-align: center;
-  cursor: pointer;
+  padding: 14px 16px;
+  border-radius: 999px;
+  font-size: 18px;
+  font-weight: 700;
+  text-decoration: none;
+  background: #22c55e;
+  color: #064e3b;
+  border: none;
 }
 
-.call-button:hover {
-  background: #16a34a;
+.call-button:active {
+  transform: scale(0.98);
 }
 
 .call-caption {
-  margin-top: 6px;
-  font-size: 14px;
-  text-align: center;
-  color: #555555;
+  margin-top: 8px;
+  font-size: 13px;
+  color: #4b5563;
 }
 
-/* 섹션 제목 */
+/* ===== 탭 네비게이션 ===== */
+.tab-nav {
+  display: flex;
+  gap: 8px;
+  margin: 12px 0 16px;
+  overflow-x: auto;
+}
+
+.tab-button {
+  flex: 1;
+  min-width: 0;
+  padding: 10px;
+  border-radius: 999px;
+  border: 1px solid #d1d5db;
+  background: #e5e7eb;
+  color: #4b5563;
+  font-size: 13px;
+}
+
+.tab-button--active {
+  background: #22c55e;
+  color: #064e3b;
+  border-color: #16a34a;
+}
+
+/* ===== 텍스트 & 리스트 ===== */
 .section-title {
-  font-size: 18px;
-  font-weight: 700;
-  margin-bottom: 8px;
+  font-size: 16px;
+  margin: 0 0 8px;
+  color: #111827;
 }
 
-/* 가게 정보 리스트 */
+.section-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.section-sub-label {
+  font-size: 11px;
+  color: #9ca3af;
+}
+
+.body-text {
+  font-size: 13px;
+  line-height: 1.6;
+  color: #374151;
+  margin: 4px 0 8px;
+}
+
 .info-list {
   list-style: none;
-  padding-left: 0;
+  padding: 0;
   margin: 0;
-  font-size: 16px;
+  font-size: 13px;
 }
 
 .info-item {
+  display: flex;
+  gap: 8px;
   margin-bottom: 6px;
 }
 
 .info-label {
-  display: inline-block;
-  width: 64px;      /* "전화" "주소" 정렬 */
-  font-weight: 700;
+  min-width: 60px;
+  font-weight: 600;
+  color: #6b7280;
 }
 
-/* 서비스 리스트 */
-.service-list {
-  list-style: none;
-  padding-left: 0;
-  margin: 0;
-  font-size: 15px;
+.muted-text {
+  font-size: 13px;
+  color: #9ca3af;
 }
 
-.service-item {
-  margin-bottom: 8px;
-}
-
-/* 이용 안내 */
-.notice-list {
-  list-style: none;
-  padding-left: 0;
-  margin: 0;
-  font-size: 15px;
-}
-
-.notice-item {
-  margin-bottom: 10px;
-}
-
-/* 푸터 */
-.footer {
-  font-size: 12px;
-  color: #777777;
-  text-align: center;
-  margin-top: 24px;
-}
-
-/* 핸드폰에서 아래에 고정된 전화 바 (심플하게) */
-.fixed-call-bar {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: #22c55e;
-  padding: 10px 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  z-index: 50;
-}
-
-.fixed-call-bar-text {
-  font-size: 16px;
-  font-weight: 700;
-  color: #ffffff;
-}
-
-/* 화면 폭 넓을 때(PC)는 고정바 안 보여도 됨 */
-@media (min-width: 768px) {
-  .fixed-call-bar {
-    display: none;
-  }
-}
-
-/* === 썸네일 리스트 (유튜브 / 블로그 공통) === */
+/* ===== 썸네일 리스트 (유튜브/블로그) ===== */
 .thumb-list {
   display: flex;
   flex-direction: column;
@@ -182,11 +175,12 @@ body {
 }
 
 .thumb-image-wrapper {
-  flex: 0 0 110px;
-  height: 70px;
-  border-radius: 8px;
+  width: 96px;
+  height: 60px;
+  border-radius: 10px;
   overflow: hidden;
-  background: #eee;
+  flex-shrink: 0;
+  background: #e5e7eb;
 }
 
 .thumb-image {
@@ -199,33 +193,92 @@ body {
   flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  gap: 2px;
 }
 
 .thumb-title {
-  font-size: 14px;
-  font-weight: 700;
-  margin-bottom: 2px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #111827;
 }
 
 .thumb-date {
-  font-size: 12px;
-  color: #777;
-  margin-bottom: 4px;
+  font-size: 11px;
+  color: #9ca3af;
 }
 
 .thumb-excerpt {
-  font-size: 13px;
-  color: #555;
-  margin-bottom: 4px;
+  font-size: 12px;
+  color: #4b5563;
 }
 
 .thumb-badge {
-  display: inline-block;
-  margin-top: 2px;
-  padding: 2px 6px;
-  border-radius: 999px;
+  margin-top: 4px;
   font-size: 11px;
-  background: #e5f3ff;
-  color: #2563eb;
+  padding: 4px 8px;
+  align-self: flex-start;
+  border-radius: 999px;
+  background: #ecfdf5;
+  color: #15803d;
+}
+
+/* ===== 서비스 / 공지 / FAQ ===== */
+.service-list,
+.notice-list {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0 0;
+}
+
+.service-item,
+.notice-item {
+  font-size: 13px;
+  color: #374151;
+  margin-bottom: 6px;
+}
+
+.faq-item + .faq-item {
+  margin-top: 10px;
+}
+
+.faq-q {
+  font-size: 14px;
+  margin: 0 0 4px;
+  color: #111827;
+}
+
+.faq-a {
+  font-size: 13px;
+  color: #374151;
+  margin: 0;
+}
+
+/* ===== 하단 고정 전화바 (모바일) ===== */
+.fixed-call-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #22c55e;
+  text-decoration: none;
+  box-shadow: 0 -4px 10px rgba(15, 23, 42, 0.15);
+}
+
+.fixed-call-bar-text {
+  text-align: center;
+  padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+  font-size: 15px;
+  font-weight: 700;
+  color: #064e3b;
+}
+
+/* ===== 태블릿 이상에서 살짝 키우기 ===== */
+@media (min-width: 768px) {
+  .header-title {
+    font-size: 32px;
+  }
+
+  .container {
+    padding-top: 24px;
+  }
 }
