@@ -9,9 +9,10 @@ export default function ChatWidget() {
   const [sending, setSending] = useState(false);
   const [error, setError] = useState("");
 
-  // 대화 ID 생성 (브라우저 전용)
+  // 브라우저에서만 conversationId 생성/저장
   useEffect(() => {
     if (typeof window === "undefined") return;
+
     let cid = window.localStorage.getItem("conversationId");
     if (!cid) {
       cid =
@@ -23,7 +24,7 @@ export default function ChatWidget() {
     setConversationId(cid);
   }, []);
 
-  // 패널 열려 있을 때만 3초마다 메시지 폴링
+  // 채팅창 열려있을 때만 3초마다 메시지 폴링
   useEffect(() => {
     if (!isOpen || !conversationId) return;
 
@@ -31,14 +32,14 @@ export default function ChatWidget() {
     const fetchMessages = async () => {
       try {
         const res = await fetch(
-          `/api/chat/messages?conversationId=${conversationId}`
+          `/api/chat/messages?conversationId=${encodeURIComponent(
+            conversationId
+          )}&t=${Date.now()}`,
+          { cache: "no-store" }
         );
         const data = await res.json();
         if (data.ok && Array.isArray(data.messages)) {
-          // 서버에 데이터가 있을 때만 덮어쓰기 (빈 배열이면 유지)
-          if (data.messages.length > 0) {
-            setMessages(data.messages);
-          }
+          setMessages(data.messages);
         }
       } catch (e) {
         console.error("fetch messages error:", e);
@@ -62,7 +63,7 @@ export default function ChatWidget() {
     setError("");
     setMsgInput("");
 
-    // 내 메시지를 먼저 화면에 추가
+    // 내 메시지를 먼저 화면에 추가 (낙관적 업데이트)
     const localMsg = {
       id: `${Date.now()}-local`,
       from: "user",
@@ -113,36 +114,35 @@ export default function ChatWidget() {
           </div>
 
           <div className="chat-panel-body">
-            {/* 고정 안내 문구 (상단) */}
+            {/* 상단 안내 문구 */}
             <p className="chat-panel-desc">
-              아래 채팅창에 편하게 문의 남겨주세요.
+              아래 채팅창에 편하게 문의 남겨주세요.{" "}
               <br />
-              <strong>
-                차량 차종/연식, 연락처, 대략적인 위치
-              </strong>
-              를 함께 적어주시면
-              <br />
-              가능한지와 예상 비용을 보고 연락드립니다.
+              <strong>차량 차종/연식, 연락처, 대략적인 위치</strong>를 함께 적어
+              주시면 가능한지와 예상 비용을 보고 연락드립니다.
             </p>
 
-            {/* 실제 채팅창 */}
+            {/* 채팅 내용 영역 */}
             <div className="chat-messages">
-              {/* 상담사가 먼저 말 거는 버블 (로컬 전용, 서버에는 안 저장) */}
+              {/* 상담사 첫 안내 말풍선 (로컬 전용) */}
               <div className="chat-bubble chat-bubble--admin">
-  <div className="chat-bubble-text" style={{ whiteSpace: "pre-line" }}>
-    {`안녕하세요, 중앙열쇠입니다 🙂  
+                <div
+                  className="chat-bubble-text"
+                  style={{ whiteSpace: "pre-line" }}
+                >
+                  {`안녕하세요, 중앙열쇠입니다 🙂  
 
 차량 정보를 보내주시면 정확한 안내가 가능합니다.
 
-- 차종 / 연식  
-- 연락처  
-- 대략적인 위치  
+- 차종 / 연식
+- 연락처
+- 대략적인 위치
 
 예) 2018 그랜저IG / 010-1234-5678 / 동구 검사동 ○○아파트 주차장`}
-  </div>
-</div>
+                </div>
+              </div>
 
-              {/* 서버에서 온 메시지들 */}
+              {/* 실제 대화 메시지들 */}
               {messages.map((m) => (
                 <div
                   key={m.id}
@@ -158,33 +158,27 @@ export default function ChatWidget() {
               ))}
             </div>
 
-            {/* 입력 영역 */}
-            {/* 입력 영역 */}
-{error && <div className="chat-error">{error}</div>}
+            {/* 에러 메시지 */}
+            {error && <div className="chat-error">{error}</div>}
 
-<form onSubmit={handleSubmit} className="chat-input-row">
-  {/* (옵션) 왼쪽에 클립 아이콘 넣고 싶으면 주석 해제 */}
-  {/* <button type="button" className="chat-icon-btn" disabled>
-    📎
-  </button> */}
+            {/* 입력 라인 (왼쪽 입력창 + 오른쪽 보내기 버튼) */}
+            <form onSubmit={handleSubmit} className="chat-input-row">
+              <textarea
+                rows={1}
+                className="chat-input"
+                value={msgInput}
+                onChange={(e) => setMsgInput(e.target.value)}
+                placeholder="내용을 입력해주세요."
+              />
 
-  <textarea
-  rows={1}
-  className="chat-input"
-  value={msgInput}
-  onChange={(e) => setMsgInput(e.target.value)}
-  placeholder="내용을 입력해주세요."
-/>
-
-  <button
-    type="submit"
-    className="chat-send-btn"
-    disabled={sending}
-  >
-    ➤
-  </button>
-</form>
-
+              <button
+                type="submit"
+                className="chat-send-btn"
+                disabled={sending}
+              >
+                ➤
+              </button>
+            </form>
           </div>
         </div>
       )}

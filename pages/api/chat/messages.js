@@ -6,6 +6,9 @@ export default async function handler(req, res) {
     return res.status(405).json({ ok: false, error: "Method Not Allowed" });
   }
 
+  // 🔥 여기 한 줄로 CDN/브라우저 캐시 완전히 끄기
+  res.setHeader("Cache-Control", "no-store, max-age=0");
+
   const { conversationId } = req.query;
 
   if (!conversationId) {
