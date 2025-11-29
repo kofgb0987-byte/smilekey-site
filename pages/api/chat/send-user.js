@@ -1,9 +1,10 @@
 // pages/api/chat/send-user.js
-import { appendMessage, redis } from "../../../lib/redis";
+import { appendMessage } from "../../../lib/redis";
 
 export default async function handler(req, res) {
-  if (req.method !== "POST")
+  if (req.method !== "POST") {
     return res.status(405).json({ ok: false, error: "Method Not Allowed" });
+  }
 
   const { conversationId, message } = req.body || {};
 
@@ -14,7 +15,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    // 1) Redis에 사용자 메시지 저장
+    // 1) 유저 메시지 Redis 저장
     await appendMessage(conversationId, {
       id: Date.now().toString(),
       from: "user",
@@ -29,31 +30,25 @@ export default async function handler(req, res) {
     if (botToken && chatId) {
       const shortId = conversationId.slice(0, 6).toUpperCase();
 
-      const text = [
+      const lines = [
+        `[CID:${conversationId}]`,
         `상담번호: ${shortId}`,
         "",
         message,
-      ].join("\n");
+        "",
+        '👉 이 메시지에 "답장"으로 회신해 주세요.',
+      ];
 
-      const tgRes = await fetch(
-        `https://api.telegram.org/bot${botToken}/sendMessage`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            chat_id: chatId,
-            text,
-          }),
-        }
-      );
+      const text = lines.join("\n");
 
-      const data = await tgRes.json();
-
-      // reply 매핑을 위해 Telegram message_id ↔ conversationId 저장
-      if (data.ok && data.result?.message_id) {
-        const msgId = data.result.message_id;
-        await redis.set(`chat:tgmsg:${msgId}`, conversationId);
-      }
+      await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          chat_id: chatId,
+          text,
+        }),
+      });
     }
 
     return res.status(200).json({ ok: true });
