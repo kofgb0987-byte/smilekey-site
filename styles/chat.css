@@ -1,113 +1,173 @@
-
-/* ===== 채팅 위젯 ===== */
+/* styles/chat.css
+/* 플로팅 버튼 */
 .chat-toggle-btn {
   position: fixed;
-  bottom: 90px;   /* 기존 20px → 90px로 올림 */
-  right: 20px;
-  background: #22c55e;
-  color: #fff;
-  font-size: 22px;
-  padding: 12px;
-  border-radius: 50%;
+  right: 16px;
+  bottom: 96px; /* 하단 전화바 위쪽 */
+  width: 56px;
+  height: 56px;
+  border-radius: 999px;
   border: none;
-  cursor: pointer;
-  z-index: 99999;
+  background: #22c55e;
+  color: #f9fafb;
+  font-size: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.4);
+  z-index: 9999;
 }
 
-
+/* 패널 전체 */
 .chat-panel {
   position: fixed;
-  bottom: 80px;
-  right: 20px;
-  width: 300px;
-  height: 420px;
-  background: white;
-  border-radius: 14px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+  right: 16px;
+  bottom: 164px; /* 버튼보다 위 */
+  width: 320px;
+  max-width: calc(100vw - 32px);
+  height: 460px;
+  background: #ffffff;
+  border-radius: 18px;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.35);
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  z-index: 999;
+  z-index: 9999;
 }
 
+/* 헤더 */
 .chat-panel-header {
-  background: #22c55e;
-  color: #fff;
-  padding: 12px;
   display: flex;
+  align-items: center;
   justify-content: space-between;
-  font-weight: bold;
+  padding: 10px 12px;
+  background: #f3f4f6;
+  border-bottom: 1px solid #e5e7eb;
 }
 
-.chat-close {
-  background: none;
+.chat-panel-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.chat-panel-close {
   border: none;
-  font-size: 18px;
-  cursor: pointer;
-  color: #fff;
+  background: transparent;
+  font-size: 16px;
+  color: #6b7280;
 }
 
+/* 본문 */
 .chat-panel-body {
-  padding: 10px;
+  flex: 1;
+  padding: 10px 12px 12px;
   display: flex;
   flex-direction: column;
-  height: calc(100% - 45px);
+  gap: 8px;
 }
 
-.chat-desc {
+.chat-panel-desc {
   font-size: 12px;
-  margin-bottom: 8px;
+  color: #4b5563;
+  margin: 0;
 }
 
+/* 메시지 리스트 */
 .chat-messages {
   flex: 1;
-  overflow-y: auto;
-  padding: 6px;
-  background: #f9fafb;
-  border-radius: 8px;
-  border: 1px solid #e5e7eb;
-}
-
-.chat-bubble {
-  max-width: 75%;
-  padding: 6px 10px;
+  margin-top: 4px;
   margin-bottom: 6px;
+  padding: 6px 6px 8px;
   border-radius: 10px;
-  font-size: 13px;
+  border: 1px solid #e5e7eb;
+  background: #f9fafb;
+  overflow-y: auto;
 }
 
-.chat-user {
-  margin-left: auto;
+/* 말풍선 */
+.chat-bubble {
+  display: flex;
+  margin-bottom: 4px;
+}
+
+.chat-bubble--user {
+  justify-content: flex-end;
+}
+
+.chat-bubble--admin {
+  justify-content: flex-start;
+}
+
+.chat-bubble-text {
+  max-width: 80%;
+  font-size: 12px;
+  line-height: 1.4;
+  padding: 6px 9px;
+  border-radius: 12px;
+}
+
+.chat-bubble--user .chat-bubble-text {
   background: #22c55e;
-  color: #fff;
+  color: #f9fafb;
+  border-bottom-right-radius: 4px;
 }
 
-.chat-admin {
-  margin-right: auto;
+.chat-bubble--admin .chat-bubble-text {
   background: #e5e7eb;
+  color: #111827;
+  border-bottom-left-radius: 4px;
 }
 
+/* 폼 */
 .chat-form {
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
 
-.chat-form input,
-.chat-form textarea {
-  width: 100%;
-  padding: 6px 8px;
-  border-radius: 6px;
-  border: 1px solid #ddd;
-  font-size: 13px;
+.chat-field {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
 }
 
-.chat-send-btn {
-  background: #22c55e;
-  color: #fff;
+.chat-label {
+  font-size: 11px;
+  color: #6b7280;
+}
+
+.chat-field input,
+.chat-field textarea {
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  padding: 6px 8px;
+  font-size: 12px;
+  font-family: inherit;
+}
+
+.chat-field textarea {
+  resize: vertical;
+  min-height: 60px;
+}
+
+.chat-error {
+  font-size: 11px;
+  color: #b91c1c;
+}
+
+/* 전송 버튼 */
+.chat-submit-btn {
+  margin-top: 4px;
   padding: 8px;
+  border-radius: 999px;
   border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: bold;
+  background: #22c55e;
+  color: #f9fafb;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.chat-submit-btn:disabled {
+  opacity: 0.7;
 }

@@ -1,7 +1,7 @@
 // pages/_app.js
 import "../styles/globals.css";
 import { Analytics } from "@vercel/analytics/react";
-import ChatWidget from "../components/chat/ChatWidget";
+import ChatWidget from "../components/common/ChatWidget";
 import "../styles/chat.css";
 
 
