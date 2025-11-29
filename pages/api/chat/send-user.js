@@ -1,7 +1,5 @@
 // pages/api/chat/send-user.js
 import { appendMessage, redis } from "../../../lib/redis";
-// redis를 lib에서 export 하고 있다면 이렇게 한 번에,
-// 아니라면 redis 따로 export 해줘야함.
 
 export default async function handler(req, res) {
   if (req.method !== "POST")
@@ -13,6 +11,7 @@ export default async function handler(req, res) {
     return res.status(400).json({ ok: false, error: "conversationId required" });
 
   try {
+    // 1) Redis에 유저 메시지 저장
     await appendMessage(conversationId, {
       id: Date.now().toString(),
       from: "user",
@@ -23,16 +22,14 @@ export default async function handler(req, res) {
       createdAt: new Date().toISOString(),
     });
 
+    // 2) Telegram 발송
     const botToken = process.env.TELEGRAM_BOT_TOKEN;
     const chatId = process.env.TELEGRAM_CHAT_ID;
 
     if (botToken && chatId) {
       const shortId = conversationId.slice(0, 6).toUpperCase();
 
-      const lines = [
-        `상담번호: ${shortId}`,
-        "",
-      ];
+      const lines = [`상담번호: ${shortId}`, ""];
       if (carInfo) lines.push(`차종/연식: ${carInfo}`);
       if (phone) lines.push(`연락처: ${phone}`);
       if (location) lines.push(`위치: ${location}`);
@@ -56,7 +53,8 @@ export default async function handler(req, res) {
 
       const data = await tgRes.json();
 
-      if (data.ok && data.result && data.result.message_id) {
+      // reply 매핑용 message_id 저장
+      if (data.ok && data.result?.message_id) {
         const msgId = data.result.message_id;
         await redis.set(`chat:tgmsg:${msgId}`, conversationId);
       }
