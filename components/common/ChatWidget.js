@@ -1,188 +1,215 @@
 // components/common/ChatWidget.js
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+
+function createConversationId() {
+  return (
+    Date.now().toString(16) +
+    "-" +
+    Math.random().toString(16).slice(2) +
+    "-" +
+    crypto.randomUUID().slice(0, 8)
+  );
+}
 
 export default function ChatWidget() {
   const [isOpen, setIsOpen] = useState(false);
   const [conversationId, setConversationId] = useState(null);
   const [messages, setMessages] = useState([]);
-  const [msgInput, setMsgInput] = useState("");
+  const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
-  const [error, setError] = useState("");
 
-  // 브라우저에서만 conversationId 생성/저장
+  const pollingRef = useRef(null);
+  const bottomRef = useRef(null);
+
+  // 1) conversationId 초기화
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    let cid =
+      typeof window !== "undefined"
+        ? window.localStorage.getItem("smilekey_cid")
+        : null;
 
-    let cid = window.localStorage.getItem("conversationId");
     if (!cid) {
-      cid =
-        typeof crypto !== "undefined" && crypto.randomUUID
-          ? crypto.randomUUID()
-          : Date.now().toString(36);
-      window.localStorage.setItem("conversationId", cid);
+      cid = createConversationId();
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem("smilekey_cid", cid);
+      }
     }
     setConversationId(cid);
   }, []);
 
-  // 채팅창 열려있을 때만 3초마다 메시지 폴링
-  useEffect(() => {
-  if (!isOpen || !conversationId) return;
-
-  let timer;
-  const fetchMessages = async () => {
+  // 2) 메시지 가져오기
+  async function fetchMessages(cid) {
     try {
       const res = await fetch(
-        `/api/chat/messages?conversationId=${encodeURIComponent(
-          conversationId
-        )}&t=${Date.now()}`,
-        { cache: "no-store" }
+        `/api/chat/messages?conversationId=${encodeURIComponent(cid)}`
       );
       const data = await res.json();
       if (data.ok && Array.isArray(data.messages)) {
-        // 🔥 서버에 뭔가 있을 때만 덮어쓰기
-        if (data.messages.length > 0) {
-          setMessages(data.messages);
-        }
+        setMessages(data.messages);
       }
     } catch (e) {
-      console.error("fetch messages error:", e);
-    } finally {
-      timer = setTimeout(fetchMessages, 3000);
+      console.error("fetchMessages error:", e);
     }
-  };
+  }
 
-  fetchMessages();
-  return () => {
-    if (timer) clearTimeout(timer);
-  };
-}, [isOpen, conversationId]);
+  // 3) 폴링 시작/중단
+  useEffect(() => {
+    if (!conversationId) return;
 
+    fetchMessages(conversationId); // 처음 한 번
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const text = msgInput.trim();
-    if (!text || !conversationId || sending) return;
+    if (pollingRef.current) clearInterval(pollingRef.current);
+
+    pollingRef.current = setInterval(() => {
+      fetchMessages(conversationId);
+    }, 3000);
+
+    return () => {
+      if (pollingRef.current) clearInterval(pollingRef.current);
+    };
+  }, [conversationId]);
+
+  // 4) 메시지 변경 시 맨 아래로 스크롤
+  useEffect(() => {
+    if (bottomRef.current) {
+      bottomRef.current.scrollIntoView({ behavior: "smooth", block: "end" });
+    }
+  }, [messages, isOpen]);
+
+  // 5) 메시지 보내기
+  async function handleSend() {
+    const trimmed = input.trim();
+    if (!trimmed || !conversationId || sending) return;
 
     setSending(true);
-    setError("");
-    setMsgInput("");
-
-    // 내 메시지를 먼저 화면에 추가 (낙관적 업데이트)
-    const localMsg = {
-      id: `${Date.now()}-local`,
-      from: "user",
-      text,
-      createdAt: new Date().toISOString(),
-    };
-    setMessages((prev) => [...prev, localMsg]);
 
     try {
-      await fetch("/api/chat/send-user", {
+      // 낙관적 업데이트: 먼저 화면에 추가
+      const myMsg = {
+        id: Date.now().toString(),
+        from: "user",
+        text: trimmed,
+        createdAt: new Date().toISOString(),
+      };
+      setMessages((prev) => [...prev, myMsg]);
+      setInput("");
+
+      const res = await fetch("/api/chat/send-user", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          conversationId,
-          message: text,
-        }),
+        body: JSON.stringify({ conversationId, message: trimmed }),
       });
+
+      const data = await res.json();
+      if (!data.ok) {
+        console.error("send-user error:", data.error);
+      } else {
+        // 서버 기준으로 다시 싱크
+        fetchMessages(conversationId);
+      }
     } catch (e) {
-      console.error(e);
-      setError("전송 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.");
+      console.error("handleSend error:", e);
     } finally {
       setSending(false);
     }
-  };
+  }
+
+  function handleKeyDown(e) {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
+  }
 
   return (
     <>
-      {/* 오른쪽 아래 플로팅 버튼 */}
+      {/* 플로팅 버튼 */}
       <button
         type="button"
-        className="chat-toggle-btn"
-        onClick={() => setIsOpen((prev) => !prev)}
+        className="chat-floating-button"
+        onClick={() => setIsOpen(true)}
       >
         💬
       </button>
 
-      {isOpen && (
-        <div className="chat-panel">
-          <div className="chat-panel-header">
-            <div className="chat-panel-title">실시간 문의</div>
-            <button
-              type="button"
-              className="chat-panel-close"
-              onClick={() => setIsOpen(false)}
-            >
-              ✕
-            </button>
-          </div>
+      {!isOpen ? null : (
+        <div className="chat-modal-backdrop">
+          <div className="chat-modal">
+            {/* 헤더 */}
+            <div className="chat-header">
+              <div className="chat-header-title">실시간 문의</div>
+              <button
+                type="button"
+                className="chat-header-close"
+                onClick={() => setIsOpen(false)}
+              >
+                ✕
+              </button>
+            </div>
 
-          <div className="chat-panel-body">
-            {/* 상단 안내 문구 */}
-            <p className="chat-panel-desc">
-              아래 채팅창에 편하게 문의 남겨주세요.{" "}
+            {/* 안내문 */}
+            <div className="chat-intro">
+              아래 채팅창에 편하게 문의 남겨주세요.
               <br />
-              <strong>차량 차종/연식, 연락처, 대략적인 위치</strong>를 함께 적어
-              주시면 가능한지와 예상 비용을 보고 연락드립니다.
-            </p>
+              <strong>
+                차량 차종/연식, 연락처, 대략적인 위치를 함께 적어 주시면
+              </strong>
+              <br />
+              가능 여부와 예상 비용을 보고 연락드릴게요.
+            </div>
 
-            {/* 채팅 내용 영역 */}
-            <div className="chat-messages">
-              {/* 상담사 첫 안내 말풍선 (로컬 전용) */}
-              <div className="chat-bubble chat-bubble--admin">
-                <div
-                  className="chat-bubble-text"
-                  style={{ whiteSpace: "pre-line" }}
-                >
-                  {`안녕하세요, 중앙열쇠입니다 🙂  
-
-차량 정보를 보내주시면 정확한 안내가 가능합니다.
-
-- 차종 / 연식
-- 연락처
-- 대략적인 위치
-
-예) 2018 그랜저IG / 010-1234-5678 / 동구 검사동 ○○아파트 주차장`}
-                </div>
+            {/* 안내 예시 말풍선 */}
+            <div className="chat-bubble chat-bubble--admin">
+              <div className="chat-bubble-text">
+                안녕하세요, 중앙열쇠입니다 🙂{"\n\n"}
+                차량 정보를 보내주시면 정확한 안내가 가능합니다.
+                {"\n\n"}
+                - 차종 / 연식
+                {"\n"}
+                - 연락처
+                {"\n"}
+                - 대략적인 위치
+                {"\n\n"}
+                예) 2018 그랜저IG / 010-1234-5678 / 동구 검사동 ○○아파트 주차장
               </div>
+            </div>
 
-              {/* 실제 대화 메시지들 */}
+            {/* 실제 대화 영역 */}
+            <div className="chat-messages">
               {messages.map((m) => (
                 <div
                   key={m.id}
                   className={
-                    "chat-bubble " +
-                    (m.from === "admin"
-                      ? "chat-bubble--admin"
-                      : "chat-bubble--user")
+                    m.from === "admin"
+                      ? "chat-bubble chat-bubble--admin"
+                      : "chat-bubble chat-bubble--user"
                   }
                 >
                   <div className="chat-bubble-text">{m.text}</div>
                 </div>
               ))}
+              <div ref={bottomRef} />
             </div>
 
-            {/* 에러 메시지 */}
-            {error && <div className="chat-error">{error}</div>}
-
-            {/* 입력 라인 (왼쪽 입력창 + 오른쪽 보내기 버튼) */}
-            <form onSubmit={handleSubmit} className="chat-input-row">
+            {/* 입력창 + 보내기 버튼 */}
+            <div className="chat-input-row">
               <textarea
-                rows={1}
                 className="chat-input"
-                value={msgInput}
-                onChange={(e) => setMsgInput(e.target.value)}
                 placeholder="내용을 입력해주세요."
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                rows={1}
               />
-
               <button
-                type="submit"
-                className="chat-send-btn"
-                disabled={sending}
+                type="button"
+                className="chat-send-button"
+                onClick={handleSend}
+                disabled={sending || !input.trim()}
               >
                 ➤
               </button>
-            </form>
+            </div>
           </div>
         </div>
       )}
