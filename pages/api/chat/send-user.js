@@ -15,6 +15,7 @@ export default async function handler(req, res) {
   }
 
   try {
+    // 유저 메시지 저장
     await appendMessage(conversationId, {
       id: Date.now().toString(),
       from: "user",
@@ -22,6 +23,7 @@ export default async function handler(req, res) {
       createdAt: new Date().toISOString(),
     });
 
+    // 텔레그램으로 전송
     const botToken = process.env.TELEGRAM_BOT_TOKEN;
     const chatId = process.env.TELEGRAM_CHAT_ID;
 

@@ -15,14 +15,13 @@ export default async function handler(req, res) {
     return res.status(200).json({ ok: true });
   }
 
-  // ❌ 일단 CHAT_ID 검사 다 빼고, 어디서 오든 처리하게 둔다
   const reply = message.reply_to_message;
   if (!reply || !reply.text) {
     console.log("TG: not a reply, ignore");
     return res.status(200).json({ ok: true });
   }
 
-  // 원본(우리가 보낸) 텍스트에서 [CID:...] 찾기
+  // 원본 텍스트에서 [CID:...] 뽑기
   const cidMatch = reply.text.match(/\[CID:([^\]\n]+)\]/);
   if (!cidMatch) {
     console.log("TG: CID not found in:", reply.text);
@@ -31,7 +30,6 @@ export default async function handler(req, res) {
 
   const conversationId = cidMatch[1];
   const adminText = (message.text || "").trim();
-
   if (!adminText) {
     console.log("TG: empty admin text, ignore");
     return res.status(200).json({ ok: true });
