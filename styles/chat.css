@@ -1,0 +1,113 @@
+
+/* ===== 채팅 위젯 ===== */
+.chat-toggle-btn {
+  position: fixed;
+  bottom: 90px;   /* 기존 20px → 90px로 올림 */
+  right: 20px;
+  background: #22c55e;
+  color: #fff;
+  font-size: 22px;
+  padding: 12px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  z-index: 99999;
+}
+
+
+.chat-panel {
+  position: fixed;
+  bottom: 80px;
+  right: 20px;
+  width: 300px;
+  height: 420px;
+  background: white;
+  border-radius: 14px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  z-index: 999;
+}
+
+.chat-panel-header {
+  background: #22c55e;
+  color: #fff;
+  padding: 12px;
+  display: flex;
+  justify-content: space-between;
+  font-weight: bold;
+}
+
+.chat-close {
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  color: #fff;
+}
+
+.chat-panel-body {
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  height: calc(100% - 45px);
+}
+
+.chat-desc {
+  font-size: 12px;
+  margin-bottom: 8px;
+}
+
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 6px;
+  background: #f9fafb;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+.chat-bubble {
+  max-width: 75%;
+  padding: 6px 10px;
+  margin-bottom: 6px;
+  border-radius: 10px;
+  font-size: 13px;
+}
+
+.chat-user {
+  margin-left: auto;
+  background: #22c55e;
+  color: #fff;
+}
+
+.chat-admin {
+  margin-right: auto;
+  background: #e5e7eb;
+}
+
+.chat-form {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.chat-form input,
+.chat-form textarea {
+  width: 100%;
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+  font-size: 13px;
+}
+
+.chat-send-btn {
+  background: #22c55e;
+  color: #fff;
+  padding: 8px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+}

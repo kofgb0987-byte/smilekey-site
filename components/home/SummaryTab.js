@@ -1,10 +1,19 @@
 // components/home/SummaryTab.js
-export default function SummaryTab({ phone, youtubeItems, blogItems }) {
+export default function SummaryTab({
+  phone,
+  youtubeItems,
+  blogItems,
+  youtubeUrl,
+  blogUrl,
+  mapEmbedUrl,
+  mapLinkUrl,
+}) {
   return (
     <>
-      {/* 핵심 가게 정보 한눈에 */}
+      {/* 가게 한눈에 보기 + 지도 + 링크 */}
       <section className="card">
         <h2 className="section-title">가게 한눈에 보기</h2>
+
         <ul className="info-list">
           <li className="info-item">
             <span className="info-label">상호</span> 중앙열쇠
@@ -18,13 +27,49 @@ export default function SummaryTab({ phone, youtubeItems, blogItems }) {
             대구광역시 동구 검사동 (대구 전 지역 출장)
           </li>
           <li className="info-item">
-            <span className="info-label">주요 서비스</span>
+            <span className="info-label">서비스</span>
             자동차 키 복사 · 수입차 스마트키 · 폴딩키 · 도어락 설치/교체
           </li>
           <li className="info-item">
             <span className="info-label">문의</span> 24시간 전화 상담 가능
           </li>
         </ul>
+
+        {/* 지도 미니뷰 */}
+        <div className="map-wrapper">
+          <a href={mapLinkUrl} target="_blank" rel="noopener noreferrer">
+            <iframe
+              className="map-frame"
+              src={mapEmbedUrl}
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+              title="중앙열쇠 위치"
+            />
+          </a>
+          <div className="map-caption">
+            주변 지도를 보려면 지도를 탭하세요.
+          </div>
+        </div>
+
+        {/* 유튜브 / 블로그 / 텔레그램 빠른 링크 */}
+        <div className="quick-link-row">
+          <a
+            href={youtubeUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="quick-link-button"
+          >
+            📺 유튜브 채널
+          </a>
+          <a
+            href={blogUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="quick-link-button"
+          >
+            📝 블로그
+          </a>
+        </div>
       </section>
 
       {/* 유튜브 최신 3개 */}

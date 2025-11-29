@@ -1,4 +1,5 @@
 // pages/index.js
+// pages/index.js
 import { useState } from "react";
 import Head from "next/head";
 import { XMLParser } from "fast-xml-parser";
@@ -6,6 +7,19 @@ import { XMLParser } from "fast-xml-parser";
 import SummaryTab from "../components/home/SummaryTab";
 import DetailsTab from "../components/home/DetailsTab";
 import QnaTab from "../components/home/QnaTab";
+import ChatWidget from "../components/common/ChatWidget";
+const YOUTUBE_URL =
+  "https://www.youtube.com/channel/UCRSiC2NpJQcvbHX6OdHV4VQ";
+const BLOG_URL = "https://blog.naver.com/yym0072";
+// 이건 네 텔레그램 아이디로 바꿔줘야 함
+const TELEGRAM_URL = "https://t.me/your_telegram_username";
+
+// 구글 지도 embed / 링크 (주소 수정해도 됨)
+const MAP_EMBED_URL =
+  "https://www.google.com/maps?q=대구광역시+동구+검사동+중앙열쇠&output=embed";
+const MAP_LINK_URL =
+  "https://www.google.com/maps/search/?api=1&query=대구광역시+동구+검사동+중앙열쇠";
+
 
 const PHONE = "010-3503-6919";
 
@@ -138,8 +152,18 @@ export default function Home({ youtubeItems, blogItems }) {
 
         {/* 탭 내용 */}
         {activeTab === "summary" && (
-          <SummaryTab phone={PHONE} youtubeItems={youtubeItems} blogItems={blogItems} />
+          <SummaryTab
+            phone={PHONE}
+            youtubeItems={youtubeItems}
+            blogItems={blogItems}
+            youtubeUrl={YOUTUBE_URL}
+            blogUrl={BLOG_URL}
+            mapEmbedUrl={MAP_EMBED_URL}
+            mapLinkUrl={MAP_LINK_URL}
+            telegramUrl={TELEGRAM_URL}
+          />
         )}
+
 
         {activeTab === "details" && <DetailsTab phone={PHONE} />}
 
@@ -150,7 +174,9 @@ export default function Home({ youtubeItems, blogItems }) {
       <a href={`tel:${PHONE}`} className="fixed-call-bar">
         <div className="fixed-call-bar-text">📞 중앙열쇠 전화하기</div>
       </a>
+      <ChatWidget />
     </>
+
   );
 }
 
