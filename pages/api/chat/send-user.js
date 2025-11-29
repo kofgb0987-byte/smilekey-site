@@ -1,6 +1,6 @@
 // pages/api/chat/send-user.js
-
 import { appendMessage } from "../../../lib/redis";
+import { redis } from "../../../lib/redis"; // 이미 있다면 재사용
 
 export default async function handler(req, res) {
   if (req.method !== "POST")
@@ -12,7 +12,7 @@ export default async function handler(req, res) {
     return res.status(400).json({ ok: false, error: "conversationId required" });
 
   try {
-    // 1) Redis 저장
+    // 1) Redis에 유저 메시지 저장
     await appendMessage(conversationId, {
       id: Date.now().toString(),
       from: "user",
@@ -23,18 +23,17 @@ export default async function handler(req, res) {
       createdAt: new Date().toISOString(),
     });
 
-    // 2) Telegram 발송
+    // 2) Telegram으로 전송
     const botToken = process.env.TELEGRAM_BOT_TOKEN;
     const chatId = process.env.TELEGRAM_CHAT_ID;
 
     if (botToken && chatId) {
+      const shortId = conversationId.slice(0, 6).toUpperCase();
+
       const lines = [
-        `[CID:${conversationId}]`,
-        "",
-        "📩 새 웹 문의가 도착했습니다.",
+        `상담번호: ${shortId}`,
         "",
       ];
-
       if (carInfo) lines.push(`차종/연식: ${carInfo}`);
       if (phone) lines.push(`연락처: ${phone}`);
       if (location) lines.push(`위치: ${location}`);
@@ -44,14 +43,25 @@ export default async function handler(req, res) {
 
       const text = lines.join("\n");
 
-      await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          chat_id: chatId,
-          text,
-        }),
-      });
+      const tgRes = await fetch(
+        `https://api.telegram.org/bot${botToken}/sendMessage`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            chat_id: chatId,
+            text,
+          }),
+        }
+      );
+
+      const data = await tgRes.json();
+
+      // 🔥 여기서 Telegram message_id ↔ conversationId 매핑 저장
+      if (data.ok && data.result && data.result.message_id) {
+        const msgId = data.result.message_id;
+        await redis.set(`chat:tgmsg:${msgId}`, conversationId);
+      }
     }
 
     return res.status(200).json({ ok: true });
