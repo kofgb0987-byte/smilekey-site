@@ -1,6 +1,7 @@
 // pages/api/chat/send-user.js
-import { appendMessage } from "../../../lib/redis";
-import { redis } from "../../../lib/redis"; // 이미 있다면 재사용
+import { appendMessage, redis } from "../../../lib/redis";
+// redis를 lib에서 export 하고 있다면 이렇게 한 번에,
+// 아니라면 redis 따로 export 해줘야함.
 
 export default async function handler(req, res) {
   if (req.method !== "POST")
@@ -12,7 +13,6 @@ export default async function handler(req, res) {
     return res.status(400).json({ ok: false, error: "conversationId required" });
 
   try {
-    // 1) Redis에 유저 메시지 저장
     await appendMessage(conversationId, {
       id: Date.now().toString(),
       from: "user",
@@ -23,7 +23,6 @@ export default async function handler(req, res) {
       createdAt: new Date().toISOString(),
     });
 
-    // 2) Telegram으로 전송
     const botToken = process.env.TELEGRAM_BOT_TOKEN;
     const chatId = process.env.TELEGRAM_CHAT_ID;
 
@@ -57,7 +56,6 @@ export default async function handler(req, res) {
 
       const data = await tgRes.json();
 
-      // 🔥 여기서 Telegram message_id ↔ conversationId 매핑 저장
       if (data.ok && data.result && data.result.message_id) {
         const msgId = data.result.message_id;
         await redis.set(`chat:tgmsg:${msgId}`, conversationId);
