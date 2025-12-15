@@ -1,5 +1,4 @@
 // pages/index.js
-// pages/index.js
 import { useState } from "react";
 import Head from "next/head";
 import { XMLParser } from "fast-xml-parser";
@@ -13,6 +12,9 @@ const YOUTUBE_URL =
 const BLOG_URL = "https://blog.naver.com/yym0072";
 // 이건 네 텔레그램 아이디로 바꿔줘야 함
 const TELEGRAM_URL = "https://t.me/your_telegram_username";
+import ArchiveTab from "../components/home/ArchiveTab";
+import crypto from "crypto";
+import { saveSummary } from "../lib/redis";
 
 // 구글 지도 embed / 링크 (주소 수정해도 됨)
 const MAP_EMBED_URL =
@@ -148,6 +150,17 @@ export default function Home({ youtubeItems, blogItems }) {
           >
             Q&A
           </button>
+
+            <button
+  type="button"
+  className={`tab-button ${
+    activeTab === "archive" ? "tab-button--active" : ""
+  }`}
+  onClick={() => setActiveTab("archive")}
+>
+  요약 저장
+</button>
+
         </nav>
 
         {/* 탭 내용 */}
@@ -168,6 +181,8 @@ export default function Home({ youtubeItems, blogItems }) {
         {activeTab === "details" && <DetailsTab phone={PHONE} />}
 
         {activeTab === "qna" && <QnaTab />}
+
+          {activeTab === "archive" && <ArchiveTab />}
       </main>
 
       {/* 모바일 하단 고정 전화바 (탭과 무관) */}
@@ -270,6 +285,48 @@ export async function getServerSideProps() {
   } catch (e) {
     console.error("Blog RSS error:", e);
   }
+
+    // ✅ RSS로 가져온 최신 글들을 Redis 요약 저장소에도 자동 저장
+  try {
+    const toSave = [];
+
+    // 유튜브: 제목/링크/날짜/썸네일로 "임시 요약" 만들기
+    for (const it of youtubeItems) {
+      const id = crypto.createHash("sha1").update(`yt:${it.link}`).digest("hex");
+      toSave.push({
+        id,
+        source: "youtube",
+        title: it.title,
+        link: it.link,
+        date: it.date,
+        thumbnail: it.thumbnail,
+        summary: `유튜브 영상: ${it.title}`, // ✅ 일단 임시 요약(다음 단계에서 AI 요약으로 교체)
+      });
+    }
+
+    // 블로그: excerpt를 요약으로 저장
+    for (const it of blogItems) {
+      const id = crypto.createHash("sha1").update(`blog:${it.link}`).digest("hex");
+      toSave.push({
+        id,
+        source: "blog",
+        title: it.title,
+        link: it.link,
+        date: it.date,
+        thumbnail: it.thumbnail,
+        summary: it.excerpt || it.title, // ✅ excerpt 있으면 그걸 요약으로
+      });
+    }
+
+    // 저장(중복 방지는 saveSummary 내부에서 처리하게 만들어둔 상태)
+    for (const item of toSave) {
+      await saveSummary(item);
+    }
+  } catch (e) {
+    console.error("Auto-save summaries error:", e);
+  }
+
+
 
   return {
     props: {
