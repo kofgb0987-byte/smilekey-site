@@ -80,6 +80,7 @@ export default function Home({ youtubeItems, blogItems }) {
           content="대구 동구 검사동 중앙열쇠 – 자동차 키 복사, 수입차 스마트키, 폴딩키 제작, 차량 키 분실, 도어락 설치/교체까지 24시간 문의. 대구 전 지역 출장 가능. 010-3503-6919"
         />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="naver-site-verification" content="79109bc1dbbc4d37a7a11af489ea0109c0829c03" />
 
         <meta property="og:title" content="중앙열쇠 – 대구 자동차 키 · 도어락 전문" />
         <meta
