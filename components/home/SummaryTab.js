@@ -1,13 +1,20 @@
 // components/home/SummaryTab.js
+import Link from "next/link";
+
+
 export default function SummaryTab({
   phone,
   youtubeItems,
   blogItems,
+    archiveItems,
   youtubeUrl,
   blogUrl,
   mapEmbedUrl,
   mapLinkUrl,
 }) {
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://smilekey.me";
+
+
   return (
     <>
       {/* 가게 한눈에 보기 + 지도 + 링크 */}
@@ -150,6 +157,85 @@ export default function SummaryTab({
           </div>
         )}
       </section>
+
+        <section className="card" style={{ marginTop: 16 }}>
+  <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between" }}>
+    <h2 style={{ marginTop: 0, marginBottom: 10 }}>최근 작업</h2>
+    <Link href="/archive" style={{ fontSize: 13, opacity: 0.8 }}>
+  전체보기 →
+</Link>
+
+  </div>
+
+  {!archiveItems || archiveItems.length === 0 ? (
+    <p style={{ margin: 0 }}>아직 저장된 작업 요약이 없습니다.</p>
+  ) : (
+    <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+      {archiveItems.slice(0, 3).map((it) => {
+  const thumb = it.thumbnail
+    ? (it.thumbnail.startsWith("http")
+        ? it.thumbnail
+        : `${siteUrl}${it.thumbnail}`)
+    : "";
+
+  return (
+    <li key={it.id} style={{ marginBottom: 12 }}>
+      <Link
+  href={`/archive/${encodeURIComponent(it.id)}`}
+  style={{
+    display: "flex",
+    gap: 12,
+    textDecoration: "none",
+    color: "inherit",
+  }}
+>
+        {thumb ? (
+          <img
+            src={thumb}
+            alt={it.title || "thumbnail"}
+            style={{
+              width: 84,
+              height: 64,
+              objectFit: "cover",
+              borderRadius: 10,
+              flex: "0 0 auto",
+            }}
+            loading="lazy"
+          />
+        ) : null}
+
+        <div style={{ minWidth: 0 }}>
+          <div style={{ fontWeight: 700, lineHeight: 1.25 }}>
+            {it.title || "제목 없음"}
+          </div>
+
+          <div style={{ fontSize: 13, opacity: 0.75, marginTop: 4 }}>
+            {it.source} · {it.date}
+          </div>
+
+          {it.summary ? (
+            <div style={{ fontSize: 14, marginTop: 6, opacity: 0.9 }}>
+              {String(it.summary).replace(/\s+/g, " ").slice(0, 90)}…
+            </div>
+          ) : null}
+        </div>
+      </Link>
+    </li>
+  );
+})}
+
+    </ul>
+  )}
+
+            <div style={{ marginTop: 12, fontSize: 13, opacity: 0.85 }}>
+  📞 작업 문의는{" "}
+  <a href={`tel:${phone}`} style={{ fontWeight: 700 }}>
+    {phone}
+  </a>
+  가 가장 빠릅니다.
+</div>
+</section>
+
     </>
   );
 }

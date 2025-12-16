@@ -2,6 +2,7 @@
 import crypto from "crypto";
 import { XMLParser } from "fast-xml-parser";
 import { saveSummary } from "../../../lib/redis";
+import { aiSummarize3 } from "../../../lib/ai";
 
 
 function cleanText(s = "") {
@@ -62,7 +63,6 @@ export default async function handler(req, res) {
   if (!process.env.CRON_SECRET || auth !== expected) {
     return res.status(401).json({ error: "Unauthorized" });
   }
-
   const parser = new XMLParser({ ignoreAttributes: false });
 
   const youtubeFeedUrl =
@@ -104,8 +104,34 @@ export default async function handler(req, res) {
     });
 
     for (const item of youtubeItems) {
-  if (await saveSummary(item)) saved++; // ✅ 새로 저장된 것만 카운트
+  const isNew = await saveSummary({
+    ...item,
+    summary_base: item.summary, // base 백업
+  });
+
+  if (!isNew) continue;
+
+  const tri = await aiSummarize3({
+    title: item.title,
+    baseSummary: item.summary,  // 규칙 요약을 초안으로
+    source: "youtube",
+    date: item.date,
+  });
+
+  if (tri?.ko) {
+    await saveSummary({
+      id: item.id,
+      summary: tri.ko,          // ✅ 기본 노출 한국어
+      summary_ko: tri.ko,
+      summary_en: tri.en || "",
+      summary_zh: tri.zh || "",
+      ai_model: "gpt-5-mini",
+      ai_at: new Date().toISOString(),
+    });
+  }
+  saved++;
 }
+
 
     // ---- 네이버 블로그 RSS ----
     const blogRes = await fetch(blogFeedUrl);
@@ -133,21 +159,45 @@ export default async function handler(req, res) {
       // excerpt 만들기(태그 제거)
       const text = description.replace(/<[^>]*>?/gm, "").trim();
       const excerpt = text.length > 120 ? text.slice(0, 120).trim() + "…" : text;
-
+const baseSummary = makeBlogSummary({ title, excerpt });
       return {
-        id: crypto.createHash("sha1").update(`blog:${link}`).digest("hex"),
-        source: "blog",
-        title,
-        link,
-        date: pubDate?.slice(0, 16) || "",
-        thumbnail: thumb ? `/api/image-proxy?url=${encodeURIComponent(thumb)}` : "",
-        summary: makeBlogSummary({ title, excerpt }),
-      };
+  id: crypto.createHash("sha1").update(`blog:${link}`).digest("hex"),
+  source: "blog",
+  title,
+  link,
+  date: pubDate?.slice(0, 16) || "",
+  thumbnail: thumb ? `/api/image-proxy?url=${encodeURIComponent(thumb)}` : "",
+  excerpt,                 // ✅ 추가
+  summary: baseSummary,    // ✅ baseSummary로 저장
+  summary_base: baseSummary, // ✅ 추가(백업)
+};
     });
 
     for (const item of blogItems) {
-  if (await saveSummary(item)) saved++;
+  const isNew = await saveSummary(item);
+  if (!isNew) continue;
+
+  const tri = await aiSummarize3({
+    title: item.title,
+    baseSummary: item.summary, // 규칙 요약 초안
+    source: "blog",
+    date: item.date,
+  });
+  if (tri?.ko) {
+    await saveSummary({
+      id: item.id,
+      summary: tri.ko,
+      summary_ko: tri.ko,
+      summary_en: tri.en || "",
+      summary_zh: tri.zh || "",
+      ai_model: "gpt-5-mini",
+      ai_at: new Date().toISOString(),
+    });
+  }
+
+  saved++;
 }
+
 
     return res.status(200).json({ ok: true, saved });
   } catch (e) {

@@ -21,7 +21,6 @@ export default async function handler(req, res) {
   // 1) 원본 텍스트에서 [CID:...] 뽑기
   const cidMatch = reply.text.match(/\[CID:([^\]\n]+)\]/);
   if (!cidMatch) {
-    console.log("TG: CID not found in:", reply.text);
     return res.status(200).json({ ok: true });
   }
   const conversationId = cidMatch[1];
@@ -38,14 +37,6 @@ export default async function handler(req, res) {
     text: adminText,
     createdAt: new Date().toISOString(),
   };
-
-  console.log(
-    "TG: append admin message to",
-    conversationId,
-    "=>",
-    adminText
-  );
-
   try {
     await appendMessage(conversationId, msgObj);
   } catch (e) {

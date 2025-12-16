@@ -2,6 +2,7 @@
 import { useState } from "react";
 import Head from "next/head";
 import { XMLParser } from "fast-xml-parser";
+import { listSummaryIds, getSummary } from "../lib/redis";
 
 import SummaryTab from "../components/home/SummaryTab";
 import DetailsTab from "../components/home/DetailsTab";
@@ -25,7 +26,7 @@ const MAP_LINK_URL =
 
 const PHONE = "010-3503-6919";
 
-export default function Home({ youtubeItems, blogItems }) {
+export default function Home({ youtubeItems, blogItems, archiveItems }) {
   const [activeTab, setActiveTab] = useState("summary");
 
   const businessJsonLd = {
@@ -122,6 +123,11 @@ export default function Home({ youtubeItems, blogItems }) {
           </p>
         </section>
 
+          <div className="promo-badge">
+  🎁 <strong>홈페이지 보고 연락 시 10% 할인</strong>
+  <span className="promo-sub"> (일부 품목 제외, 최대 5만원)</span>
+</div>
+
         {/* 탭 네비게이션 */}
         <nav className="tab-nav">
           <button
@@ -175,6 +181,7 @@ export default function Home({ youtubeItems, blogItems }) {
             mapEmbedUrl={MAP_EMBED_URL}
             mapLinkUrl={MAP_LINK_URL}
             telegramUrl={TELEGRAM_URL}
+            archiveItems={archiveItems}
           />
         )}
 
@@ -286,53 +293,28 @@ export async function getServerSideProps() {
   } catch (e) {
     console.error("Blog RSS error:", e);
   }
-
-    // ✅ RSS로 가져온 최신 글들을 Redis 요약 저장소에도 자동 저장
+  // ✅ 아카이브(요약 저장소) 최신 3개 가져오기
+  let archiveItems = [];
   try {
-    const toSave = [];
-
-    // 유튜브: 제목/링크/날짜/썸네일로 "임시 요약" 만들기
-    for (const it of youtubeItems) {
-      const id = crypto.createHash("sha1").update(`yt:${it.link}`).digest("hex");
-      toSave.push({
-        id,
-        source: "youtube",
-        title: it.title,
-        link: it.link,
-        date: it.date,
-        thumbnail: it.thumbnail,
-        summary: `유튜브 영상: ${it.title}`, // ✅ 일단 임시 요약(다음 단계에서 AI 요약으로 교체)
-      });
-    }
-
-    // 블로그: excerpt를 요약으로 저장
-    for (const it of blogItems) {
-      const id = crypto.createHash("sha1").update(`blog:${it.link}`).digest("hex");
-      toSave.push({
-        id,
-        source: "blog",
-        title: it.title,
-        link: it.link,
-        date: it.date,
-        thumbnail: it.thumbnail,
-        summary: it.excerpt || it.title, // ✅ excerpt 있으면 그걸 요약으로
-      });
-    }
-
-    // 저장(중복 방지는 saveSummary 내부에서 처리하게 만들어둔 상태)
-    for (const item of toSave) {
-      await saveSummary(item);
-    }
+    const ids = await listSummaryIds(3);
+    const raw = await Promise.all(
+      ids.map(async (id) => {
+        const it = await getSummary(id);
+        return it ? { ...it, id } : null;
+      })
+    );
+    archiveItems = raw.filter(Boolean);
   } catch (e) {
-    console.error("Auto-save summaries error:", e);
+    console.error("ArchiveItems load error:", e);
   }
 
 
-
   return {
-    props: {
-      youtubeItems,
-      blogItems,
-    },
-  };
+  props: {
+    youtubeItems,
+    blogItems,
+    archiveItems, // ✅ 추가
+  },
+};
+
 }
