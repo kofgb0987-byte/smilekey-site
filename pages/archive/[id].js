@@ -62,6 +62,8 @@ const ogImage = item.thumbnail
         <meta property="og:type" content="article" />
         {ogImage ? <meta property="og:image" content={ogImage} /> : null}
 
+
+
       </Head>
 
       <main className="container">
@@ -90,6 +92,22 @@ const ogImage = item.thumbnail
     />
   </div>
 ) : null}
+
+  {/* ✅ 추가 이미지들(3~5장) */}
+            {Array.isArray(item.images) && item.images.length > 0 ? (
+  <div style={{ display: "grid", gap: 10, marginBottom: 12 }}>
+    {item.images.slice(ogImage ? 1 : 0, 5).map((src, i) => (
+      <img
+        key={i}
+        src={src.startsWith("http") ? src : `${siteUrl}${src}`}
+        alt={`${safeTitle} image ${i + 1}`}
+        style={{ width: "100%", borderRadius: 12, display: "block" }}
+        loading="lazy"
+      />
+    ))}
+  </div>
+) : null}
+
 
 
           <div style={{ display: "flex", gap: 8, marginBottom: 10, flexWrap: "wrap" }}>
@@ -142,7 +160,11 @@ const ogImage = item.thumbnail
   </button>
 </div>
 
-{summaryByLang ? <p>{summaryByLang}</p> : <p>(요약 없음)</p>}
+{summaryByLang ? (
+  <p style={{ whiteSpace: "pre-line" }}>{summaryByLang}</p>
+) : (
+  <p>(요약 없음)</p>
+)}
           <a href={item.link} target="_blank" rel="noreferrer">
             원문 보기
           </a>

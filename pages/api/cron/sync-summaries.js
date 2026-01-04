@@ -5,6 +5,87 @@ import { saveSummary } from "../../../lib/redis";
 import { aiSummarize3 } from "../../../lib/ai";
 
 
+
+async function fetchHtml(url) {
+  const res = await fetch(url, {
+    headers: {
+      "User-Agent": "Mozilla/5.0",
+      "Accept-Language": "ko-KR,ko;q=0.9,en;q=0.7",
+      "Referer": "https://blog.naver.com/",
+    },
+  });
+  if (!res.ok) throw new Error(`fetchHtml failed ${res.status} ${url}`);
+  return await res.text();
+}
+function normalizeNaverImg(u = "") {
+  // blur 미리보기면 큰 사이즈로 교체
+  return u.replace(/type=w80_blur/g, "type=w966");
+}
+function absolutizeUrl(base, rel) {
+  try { return new URL(rel, base).toString(); }
+  catch { return rel; }
+}
+
+async function extractBlogImagesFromPost(link, max = 5) {
+  const html1 = await fetchHtml(link);
+
+  const m = html1.match(/<iframe[^>]+id=["']mainFrame["'][^>]+src=["']([^"']+)["']/i);
+  let html = html1;
+
+  if (m && m[1]) {
+    const frameUrl = absolutizeUrl(link, m[1]);
+    html = await fetchHtml(frameUrl);
+  }
+
+  const raw = extractImagesFromHtml(html);
+    const scriptHits =
+  html.match(/https?:\/\/[^"'\\\s]+pstatic\.net[^"'\\\s]+\.(?:jpg|jpeg|png|webp)(?:\?[^"'\\\s]+)?/gi) || [];
+raw.push(...scriptHits);
+  // ✅ merged 정의 (중복 제거)
+  const merged = [...new Set([...raw, ...scriptHits])];
+
+  const filtered = merged.filter((u) =>
+    /blogfiles\.pstatic\.net/i.test(u) || /postfiles\.pstatic\.net/i.test(u)
+  );
+
+  return filtered.slice(0, max);
+}
+
+
+
+function extractImagesFromHtml(html = "") {
+  const urls = [];
+  const imgTags = html.match(/<img\b[^>]*>/gi) || [];
+
+  for (const tag of imgTags) {
+    const m = tag.match(/\s(?:src|data-src|data-lazy-src|data-original)\s*=\s*["']([^"']+)["']/i);
+    if (!m) continue;
+
+    let u = (m[1] || "").trim();
+    if (!u) continue;
+
+    u = u.replace(/&amp;/g, "&");
+    if (u.startsWith("//")) u = "https:" + u;
+    if (u.startsWith("http://")) u = u.replace("http://", "https://");
+
+    if (!u.startsWith("http")) continue;
+    if (u.startsWith("data:")) continue;
+    if (/\/static\/blog\/profile\/img_profile_preset_/i.test(u)) continue;
+    if (/\.gif(\?|$)/i.test(u)) continue;
+    if (/spacer|blank|sprite|sticker/i.test(u)) continue;
+
+    urls.push(u);
+  }
+
+  return [...new Set(urls)];
+}
+
+
+function toProxyUrl(u = "") {
+  if (!u) return "";
+  return `/api/image-proxy?url=${encodeURIComponent(u)}`;
+}
+
 function cleanText(s = "") {
   return String(s)
     .replace(/<[^>]*>/g, " ")       // 혹시 남은 태그 제거
@@ -144,34 +225,41 @@ export default async function handler(req, res) {
         : [blogData.rss.channel.item]
       : [];
 
-    const blogItems = items.slice(0, 3).map((item) => {
-      const title = item.title || "";
-      const link = item.link || "";
-      const pubDate = item.pubDate || "";
-      const description = item.description || "";
+    const blogItems = await Promise.all(items.slice(0, 3).map(async (item) => {
+  const title = item.title || "";
+  const link = item.link || "";
+  const pubDate = item.pubDate || "";
+  const description = item.description || "";
 
-      // 썸네일 추출
-      let thumb = "";
-      const imgMatch = description.match(/<img[^>]+src=['"]([^'">]+)['"]/i);
-      if (imgMatch?.[1]) thumb = imgMatch[1];
-      if (thumb.startsWith("http://")) thumb = thumb.replace("http://", "https://");
+  // ✅ 1) 본문 이미지 3~5장 추출 (RSS description 말고 진짜 글 페이지)
+  const rawImgs = (await extractBlogImagesFromPost(link, 5)).map(normalizeNaverImg);
 
-      // excerpt 만들기(태그 제거)
-      const text = description.replace(/<[^>]*>?/gm, "").trim();
-      const excerpt = text.length > 120 ? text.slice(0, 120).trim() + "…" : text;
-const baseSummary = makeBlogSummary({ title, excerpt });
-      return {
-  id: crypto.createHash("sha1").update(`blog:${link}`).digest("hex"),
-  source: "blog",
-  title,
-  link,
-  date: pubDate?.slice(0, 16) || "",
-  thumbnail: thumb ? `/api/image-proxy?url=${encodeURIComponent(thumb)}` : "",
-  excerpt,                 // ✅ 추가
-  summary: baseSummary,    // ✅ baseSummary로 저장
-  summary_base: baseSummary, // ✅ 추가(백업)
-};
-    });
+  // ✅ 2) 프록시로 저장
+  const proxiedImgs = rawImgs.map(toProxyUrl);
+
+  // 대표 썸네일
+  const thumb = proxiedImgs[0] || "";
+
+  // excerpt는 일단 RSS description에서 뽑아도 OK (나중에 본문에서 뽑아도 됨)
+  const text = description.replace(/<[^>]*>?/gm, "").trim();
+  const excerpt = text.length > 120 ? text.slice(0, 120).trim() + "…" : text;
+
+  const baseSummary = makeBlogSummary({ title, excerpt });
+
+  return {
+    id: crypto.createHash("sha1").update(`blog:${link}`).digest("hex"),
+    source: "blog",
+    title,
+    link,
+    date: pubDate?.slice(0, 16) || "",
+    thumbnail: thumb,
+    images: proxiedImgs, // ✅ 여기!
+    excerpt,
+    summary: baseSummary,
+    summary_base: baseSummary,
+  };
+}));
+
 
     for (const item of blogItems) {
   const isNew = await saveSummary(item);
