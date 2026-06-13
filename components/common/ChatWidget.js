@@ -145,28 +145,9 @@ export default function ChatWidget() {
             </div>
 
             <div className="chat-intro">
-              아래 채팅창에 편하게 문의 남겨주세요.
+              차키 분실 · 예비키 · 스마트키 · 도어락 문의를 남겨주세요.
               <br />
-              <strong>
-                차량 차종/연식, 연락처, 대략적인 위치를 함께 적어 주시면
-              </strong>
-              <br />
-              가능 여부와 예상 비용을 보고 연락드릴게요.
-            </div>
-
-            <div className="chat-bubble chat-bubble--admin">
-              <div className="chat-bubble-text">
-                안녕하세요, 중앙열쇠입니다 🙂{"\n\n"}
-                차량 정보를 보내주시면 정확한 안내가 가능합니다.
-                {"\n\n"}
-                - 차종 / 연식
-                {"\n"}
-                - 연락처
-                {"\n"}
-                - 대략적인 위치
-                {"\n\n"}
-                예) 2018 그랜저IG / 010-1234-5678 / 동구 검사동 ○○아파트 주차장
-              </div>
+              확인 후 빠르게 안내드립니다.
             </div>
 
             <div className="chat-messages">
@@ -188,7 +169,7 @@ export default function ChatWidget() {
             <div className="chat-input-row">
               <textarea
                 className="chat-input"
-                placeholder="내용을 입력해주세요."
+                placeholder="문의 내용을 입력해주세요."
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
