@@ -21,18 +21,21 @@ export default function ChatWidget() {
   const pollingRef = useRef(null);
   const bottomRef = useRef(null);
 
-  // conversationId 초기화
+  // conversationId 초기화 (24시간 지나면 새 대화)
   useEffect(() => {
-    let cid =
-      typeof window !== "undefined"
-        ? window.localStorage.getItem("smilekey_cid")
-        : null;
+    const CID_KEY = "smilekey_cid";
+    const TS_KEY = "smilekey_cid_ts";
+    const TTL_MS = 24 * 60 * 60 * 1000;
 
+    const stored = localStorage.getItem(CID_KEY);
+    const ts = parseInt(localStorage.getItem(TS_KEY) || "0", 10);
+    const expired = Date.now() - ts > TTL_MS;
+
+    let cid = stored && !expired ? stored : null;
     if (!cid) {
       cid = createConversationId();
-      if (typeof window !== "undefined") {
-        window.localStorage.setItem("smilekey_cid", cid);
-      }
+      localStorage.setItem(CID_KEY, cid);
+      localStorage.setItem(TS_KEY, Date.now().toString());
     }
     setConversationId(cid);
   }, []);
@@ -91,6 +94,8 @@ export default function ChatWidget() {
       };
       setMessages((prev) => [...prev, myMsg]);
       setInput("");
+
+      localStorage.setItem("smilekey_cid_ts", Date.now().toString());
 
       const res = await fetch("/api/chat/send-user", {
         method: "POST",
