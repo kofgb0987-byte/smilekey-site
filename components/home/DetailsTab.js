@@ -1,7 +1,24 @@
 // components/home/DetailsTab.js
+import Link from "next/link";
+
 export default function DetailsTab({ phone, mapLinkUrl }) {
   return (
     <>
+      <section className="card" style={{ marginBottom: "1rem" }}>
+        <h2 className="section-title">서비스 상세 안내</h2>
+        <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+          <Link href="/services/car-key" style={{ display: "block", padding: "0.65rem 1rem", background: "#eff6ff", borderRadius: "0.5rem", color: "#1e40af", fontWeight: 600, textDecoration: "none" }}>
+            🚗 자동차 키 복사 · 분실 제작 →
+          </Link>
+          <Link href="/services/smart-key" style={{ display: "block", padding: "0.65rem 1rem", background: "#eff6ff", borderRadius: "0.5rem", color: "#1e40af", fontWeight: 600, textDecoration: "none" }}>
+            🔑 수입차 스마트키 · 폴딩키 →
+          </Link>
+          <Link href="/services/door-lock" style={{ display: "block", padding: "0.65rem 1rem", background: "#eff6ff", borderRadius: "0.5rem", color: "#1e40af", fontWeight: 600, textDecoration: "none" }}>
+            🚪 도어락 설치 · 교체 →
+          </Link>
+        </div>
+      </section>
+
       <section className="card">
         <h2 className="section-title">중앙열쇠 소개</h2>
         <p className="body-text">
