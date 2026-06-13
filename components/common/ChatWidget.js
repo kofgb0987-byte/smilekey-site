@@ -21,7 +21,7 @@ export default function ChatWidget() {
   const pollingRef = useRef(null);
   const bottomRef = useRef(null);
 
-  // 1) conversationId 초기화
+  // conversationId 초기화
   useEffect(() => {
     let cid =
       typeof window !== "undefined"
@@ -37,7 +37,6 @@ export default function ChatWidget() {
     setConversationId(cid);
   }, []);
 
-  // 2) 메시지 가져오기
   async function fetchMessages(cid) {
     try {
       const res = await fetch(
@@ -52,13 +51,14 @@ export default function ChatWidget() {
     }
   }
 
-  // 3) 폴링 시작/중단
+  // 채팅창이 열려있을 때만 폴링
   useEffect(() => {
-    if (!conversationId) return;
+    if (!conversationId || !isOpen) {
+      if (pollingRef.current) clearInterval(pollingRef.current);
+      return;
+    }
 
-    fetchMessages(conversationId); // 처음 한 번
-
-    if (pollingRef.current) clearInterval(pollingRef.current);
+    fetchMessages(conversationId);
 
     pollingRef.current = setInterval(() => {
       fetchMessages(conversationId);
@@ -67,16 +67,15 @@ export default function ChatWidget() {
     return () => {
       if (pollingRef.current) clearInterval(pollingRef.current);
     };
-  }, [conversationId]);
+  }, [conversationId, isOpen]);
 
-  // 4) 메시지 변경 시 맨 아래로 스크롤
+  // 메시지 변경 시 맨 아래로 스크롤
   useEffect(() => {
     if (bottomRef.current) {
       bottomRef.current.scrollIntoView({ behavior: "smooth", block: "end" });
     }
   }, [messages, isOpen]);
 
-  // 5) 메시지 보내기
   async function handleSend() {
     const trimmed = input.trim();
     if (!trimmed || !conversationId || sending) return;
@@ -84,7 +83,6 @@ export default function ChatWidget() {
     setSending(true);
 
     try {
-      // 낙관적 업데이트: 먼저 화면에 추가
       const myMsg = {
         id: Date.now().toString(),
         from: "user",
@@ -104,7 +102,6 @@ export default function ChatWidget() {
       if (!data.ok) {
         console.error("send-user error:", data.error);
       } else {
-        // 서버 기준으로 다시 싱크
         fetchMessages(conversationId);
       }
     } catch (e) {
@@ -123,31 +120,30 @@ export default function ChatWidget() {
 
   return (
     <>
-      {/* 플로팅 버튼 */}
       <button
         type="button"
         className="chat-floating-button"
+        aria-label="채팅 문의 열기"
         onClick={() => setIsOpen(true)}
       >
         💬
       </button>
 
       {!isOpen ? null : (
-        <div className="chat-modal-backdrop">
-          <div className="chat-modal">
-            {/* 헤더 */}
+        <div className="chat-modal-backdrop" onClick={() => setIsOpen(false)}>
+          <div className="chat-modal" onClick={(e) => e.stopPropagation()}>
             <div className="chat-header">
               <div className="chat-header-title">실시간 문의</div>
               <button
                 type="button"
                 className="chat-header-close"
+                aria-label="채팅 닫기"
                 onClick={() => setIsOpen(false)}
               >
                 ✕
               </button>
             </div>
 
-            {/* 안내문 */}
             <div className="chat-intro">
               아래 채팅창에 편하게 문의 남겨주세요.
               <br />
@@ -158,7 +154,6 @@ export default function ChatWidget() {
               가능 여부와 예상 비용을 보고 연락드릴게요.
             </div>
 
-            {/* 안내 예시 말풍선 */}
             <div className="chat-bubble chat-bubble--admin">
               <div className="chat-bubble-text">
                 안녕하세요, 중앙열쇠입니다 🙂{"\n\n"}
@@ -174,7 +169,6 @@ export default function ChatWidget() {
               </div>
             </div>
 
-            {/* 실제 대화 영역 */}
             <div className="chat-messages">
               {messages.map((m) => (
                 <div
@@ -191,7 +185,6 @@ export default function ChatWidget() {
               <div ref={bottomRef} />
             </div>
 
-            {/* 입력창 + 보내기 버튼 */}
             <div className="chat-input-row">
               <textarea
                 className="chat-input"
@@ -204,6 +197,7 @@ export default function ChatWidget() {
               <button
                 type="button"
                 className="chat-send-button"
+                aria-label="메시지 보내기"
                 onClick={handleSend}
                 disabled={sending || !input.trim()}
               >

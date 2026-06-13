@@ -1,20 +1,19 @@
 // components/home/SummaryTab.js
 import Link from "next/link";
+import Image from "next/image";
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://smilekey.me";
 
 export default function SummaryTab({
   phone,
   youtubeItems,
   blogItems,
-    archiveItems,
+  archiveItems,
   youtubeUrl,
   blogUrl,
   mapEmbedUrl,
   mapLinkUrl,
 }) {
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://smilekey.me";
-
-
   return (
     <>
       {/* 가게 한눈에 보기 + 지도 + 링크 */}
@@ -42,23 +41,30 @@ const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://smilekey.me";
           </li>
         </ul>
 
-        {/* 지도 미니뷰 */}
+        {/* 지도 미니뷰 — iframe과 링크 분리 */}
         <div className="map-wrapper">
-          <a href={mapLinkUrl} target="_blank" rel="noopener noreferrer">
-            <iframe
-              className="map-frame"
-              src={mapEmbedUrl}
-              loading="lazy"
-              referrerPolicy="no-referrer-when-downgrade"
-              title="중앙열쇠 위치"
-            />
-          </a>
-          <div className="map-caption">
-            주변 지도를 보려면 지도를 탭하세요.
+          <iframe
+            className="map-frame"
+            src={mapEmbedUrl}
+            loading="lazy"
+            referrerPolicy="no-referrer-when-downgrade"
+            title="중앙열쇠 위치"
+            allowFullScreen
+          />
+          <div className="map-footer">
+            <span className="map-caption">탭하면 주변 지도를 볼 수 있습니다.</span>
+            <a
+              href={mapLinkUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="map-open-link"
+            >
+              지도 전체 보기 →
+            </a>
           </div>
         </div>
 
-        {/* 유튜브 / 블로그 / 텔레그램 빠른 링크 */}
+        {/* 유튜브 / 블로그 빠른 링크 */}
         <div className="quick-link-row">
           <a
             href={youtubeUrl}
@@ -100,10 +106,13 @@ const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://smilekey.me";
               >
                 {item.thumbnail && (
                   <div className="thumb-image-wrapper">
-                    <img
+                    <Image
                       src={item.thumbnail}
                       alt={item.title}
                       className="thumb-image"
+                      width={96}
+                      height={60}
+                      style={{ objectFit: "cover" }}
                     />
                   </div>
                 )}
@@ -143,6 +152,7 @@ const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://smilekey.me";
                       src={item.thumbnail}
                       alt={item.title}
                       className="thumb-image"
+                      loading="lazy"
                     />
                   </div>
                 )}
@@ -158,84 +168,68 @@ const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://smilekey.me";
         )}
       </section>
 
-        <section className="card" style={{ marginTop: 16 }}>
-  <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between" }}>
-    <h2 style={{ marginTop: 0, marginBottom: 10 }}>최근 작업</h2>
-    <Link href="/archive" style={{ fontSize: 13, opacity: 0.8 }}>
-  전체보기 →
-</Link>
-
-  </div>
-
-  {!archiveItems || archiveItems.length === 0 ? (
-    <p style={{ margin: 0 }}>아직 저장된 작업 요약이 없습니다.</p>
-  ) : (
-    <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
-      {archiveItems.slice(0, 3).map((it) => {
-  const thumb = it.thumbnail
-    ? (it.thumbnail.startsWith("http")
-        ? it.thumbnail
-        : `${siteUrl}${it.thumbnail}`)
-    : "";
-
-  return (
-    <li key={it.id} style={{ marginBottom: 12 }}>
-      <Link
-  href={`/archive/${encodeURIComponent(it.id)}`}
-  style={{
-    display: "flex",
-    gap: 12,
-    textDecoration: "none",
-    color: "inherit",
-  }}
->
-        {thumb ? (
-          <img
-            src={thumb}
-            alt={it.title || "thumbnail"}
-            style={{
-              width: 84,
-              height: 64,
-              objectFit: "cover",
-              borderRadius: 10,
-              flex: "0 0 auto",
-            }}
-            loading="lazy"
-          />
-        ) : null}
-
-        <div style={{ minWidth: 0 }}>
-          <div style={{ fontWeight: 700, lineHeight: 1.25 }}>
-            {it.title || "제목 없음"}
-          </div>
-
-          <div style={{ fontSize: 13, opacity: 0.75, marginTop: 4 }}>
-            {it.source} · {it.date}
-          </div>
-
-          {it.summary ? (
-            <div style={{ fontSize: 14, marginTop: 6, opacity: 0.9 }}>
-              {String(it.summary).replace(/\s+/g, " ").slice(0, 90)}…
-            </div>
-          ) : null}
+      {/* 최근 작업 */}
+      <section className="card">
+        <div className="archive-header">
+          <h2 className="archive-title">최근 작업</h2>
+          <Link href="/archive" className="archive-more-link">
+            전체보기 →
+          </Link>
         </div>
-      </Link>
-    </li>
-  );
-})}
 
-    </ul>
-  )}
+        {!archiveItems || archiveItems.length === 0 ? (
+          <p className="muted-text">아직 저장된 작업 요약이 없습니다.</p>
+        ) : (
+          <ul className="archive-list">
+            {archiveItems.slice(0, 3).map((it) => {
+              const thumb = it.thumbnail
+                ? it.thumbnail.startsWith("http")
+                  ? it.thumbnail
+                  : `${SITE_URL}${it.thumbnail}`
+                : "";
 
-            <div style={{ marginTop: 12, fontSize: 13, opacity: 0.85 }}>
-  📞 작업 문의는{" "}
-  <a href={`tel:${phone}`} style={{ fontWeight: 700 }}>
-    {phone}
-  </a>
-  가 가장 빠릅니다.
-</div>
-</section>
+              return (
+                <li key={it.id} className="archive-item">
+                  <Link
+                    href={`/archive/${encodeURIComponent(it.id)}`}
+                    className="archive-link"
+                  >
+                    {thumb && (
+                      <img
+                        src={thumb}
+                        alt={it.title || "thumbnail"}
+                        className="archive-thumb"
+                        loading="lazy"
+                      />
+                    )}
+                    <div className="archive-info">
+                      <div className="archive-item-title">
+                        {it.title || "제목 없음"}
+                      </div>
+                      <div className="archive-item-meta">
+                        {it.source} · {it.date}
+                      </div>
+                      {it.summary && (
+                        <div className="archive-item-summary">
+                          {String(it.summary).replace(/\s+/g, " ").slice(0, 90)}…
+                        </div>
+                      )}
+                    </div>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        )}
 
+        <div className="archive-contact">
+          📞 작업 문의는{" "}
+          <a href={`tel:${phone}`} className="archive-contact-link">
+            {phone}
+          </a>
+          가 가장 빠릅니다.
+        </div>
+      </section>
     </>
   );
 }

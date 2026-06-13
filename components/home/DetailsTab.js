@@ -1,8 +1,7 @@
 // components/home/DetailsTab.js
-export default function DetailsTab({ phone }) {
+export default function DetailsTab({ phone, mapLinkUrl }) {
   return (
     <>
-      {/* 상세 소개 */}
       <section className="card">
         <h2 className="section-title">중앙열쇠 소개</h2>
         <p className="body-text">
@@ -19,7 +18,6 @@ export default function DetailsTab({ phone }) {
         </p>
       </section>
 
-      {/* 서비스 상세 1 */}
       <section className="card">
         <h2 className="section-title">자동차 키 복사 · 제작</h2>
         <p className="body-text">
@@ -37,7 +35,6 @@ export default function DetailsTab({ phone }) {
         </ul>
       </section>
 
-      {/* 서비스 상세 2 */}
       <section className="card">
         <h2 className="section-title">수입차 키 · 스마트키</h2>
         <p className="body-text">
@@ -55,7 +52,6 @@ export default function DetailsTab({ phone }) {
         </ul>
       </section>
 
-      {/* 서비스 상세 3 */}
       <section className="card">
         <h2 className="section-title">도어락 설치 · 교체</h2>
         <p className="body-text">
@@ -71,7 +67,6 @@ export default function DetailsTab({ phone }) {
         </ul>
       </section>
 
-      {/* 이용 안내 */}
       <section className="card">
         <h2 className="section-title">이용 안내</h2>
         <ul className="notice-list">
@@ -95,7 +90,6 @@ export default function DetailsTab({ phone }) {
         </ul>
       </section>
 
-      {/* 위치 안내 */}
       <section className="card">
         <h2 className="section-title">위치 안내</h2>
         <p className="body-text">
@@ -107,15 +101,16 @@ export default function DetailsTab({ phone }) {
           <strong>대구 전 지역</strong>을 대상으로 하며, 동구 · 수성구 · 북구
           지역은 비교적 빠른 방문이 가능합니다.
         </p>
-        {/* 실제 지도 링크 있으면 여기 href 교체 */}
-        {/* <a
-          href="지도_링크"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="map-link"
-        >
-          지도에서 위치 보기
-        </a> */}
+        {mapLinkUrl && (
+          <a
+            href={mapLinkUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="map-link"
+          >
+            🗺 지도에서 위치 보기
+          </a>
+        )}
       </section>
     </>
   );

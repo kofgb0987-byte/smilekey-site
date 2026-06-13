@@ -1,9 +1,11 @@
 // pages/archive/index.js
-
+import Head from "next/head";
 import Link from "next/link";
 import { listSummaryIds, getSummary } from "../../lib/redis";
 
-export async function getServerSideProps() {
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://smilekey.me";
+
+export async function getStaticProps() {
   const ids = await listSummaryIds(50);
 
   const itemsRaw = await Promise.all(
@@ -13,85 +15,90 @@ export async function getServerSideProps() {
     })
   );
 
-  const items = itemsRaw.filter(Boolean);
-
-  return { props: { items } };
+  return {
+    props: { items: itemsRaw.filter(Boolean) },
+    revalidate: 300,
+  };
 }
-
 
 export default function ArchiveList({ items }) {
   return (
-    <main className="container">
-      <header className="header">
-        <h1 className="header-title">요약 저장소</h1>
-        <p className="header-sub">유튜브/블로그 요약 아카이브</p>
-      </header>
+    <>
+      <Head>
+        <title>작업 아카이브 | 대구 중앙열쇠</title>
+        <meta
+          name="description"
+          content="대구 동구 중앙열쇠의 자동차 키·스마트키·도어락 작업 사례 모음. 유튜브·블로그 요약 아카이브."
+        />
+        <link rel="canonical" href={`${SITE_URL}/archive`} />
+        <meta property="og:title" content="작업 아카이브 | 대구 중앙열쇠" />
+        <meta property="og:url" content={`${SITE_URL}/archive`} />
+        <meta property="og:type" content="website" />
+      </Head>
 
-      <section className="card">
-        {items.length === 0 ? (
-          <p>저장된 요약이 없습니다.</p>
-        ) : (
-          <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
-  {items.map((it) => {
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://smilekey.me";
-    const thumb = it.thumbnail
-      ? (it.thumbnail.startsWith("http") ? it.thumbnail : `${siteUrl}${it.thumbnail}`)
-      : "";
+      <main className="container">
+        <header className="header">
+          <h1 className="header-title">작업 아카이브</h1>
+          <p className="header-sub">유튜브·블로그 요약 모음</p>
+        </header>
 
-    const oneLine = (it.summary || it.title || "")
-      .replace(/\s+/g, " ")
-      .slice(0, 90);
+        <div style={{ marginBottom: 12 }}>
+          <Link href="/" style={{ fontSize: 13, opacity: 0.75 }}>
+            ← 홈으로
+          </Link>
+        </div>
 
-    return (
-      <li key={it.id} style={{ marginBottom: 12 }}>
-        <a
-          href={`/archive/${encodeURIComponent(it.id)}`}
-          style={{
-            display: "flex",
-            gap: 12,
-            textDecoration: "none",
-            color: "inherit",
-          }}
-        >
-          {thumb ? (
-            <img
-              src={thumb}
-              alt={it.title || "thumbnail"}
-              style={{
-                width: 88,
-                height: 66,
-                objectFit: "cover",
-                borderRadius: 10,
-                flex: "0 0 auto",
-              }}
-              loading="lazy"
-            />
-          ) : null}
+        <section className="card">
+          {items.length === 0 ? (
+            <p className="muted-text">저장된 요약이 없습니다.</p>
+          ) : (
+            <ul className="archive-list">
+              {items.map((it) => {
+                const thumb = it.thumbnail
+                  ? it.thumbnail.startsWith("http")
+                    ? it.thumbnail
+                    : `${SITE_URL}${it.thumbnail}`
+                  : "";
 
-          <div style={{ minWidth: 0 }}>
-            <div style={{ fontWeight: 700, lineHeight: 1.25 }}>
-              {it.title || it.id}
-            </div>
+                const oneLine = (it.summary_ko || it.summary || it.title || "")
+                  .replace(/\s+/g, " ")
+                  .slice(0, 90);
 
-            <div style={{ fontSize: 13, opacity: 0.75, marginTop: 4 }}>
-              {it.source} · {it.date}
-            </div>
-
-            {oneLine ? (
-              <div style={{ fontSize: 14, marginTop: 6, opacity: 0.9 }}>
-                {oneLine}…
-              </div>
-            ) : null}
-          </div>
-        </a>
-      </li>
-    );
-  })}
-</ul>
-
-        )}
-      </section>
-    </main>
+                return (
+                  <li key={it.id} className="archive-item">
+                    <Link
+                      href={`/archive/${encodeURIComponent(it.id)}`}
+                      className="archive-link"
+                    >
+                      {thumb && (
+                        <img
+                          src={thumb}
+                          alt={it.title || "thumbnail"}
+                          className="archive-thumb"
+                          loading="lazy"
+                        />
+                      )}
+                      <div className="archive-info">
+                        <div className="archive-item-title">
+                          {it.title || it.id}
+                        </div>
+                        <div className="archive-item-meta">
+                          {it.source} · {it.date}
+                        </div>
+                        {oneLine && (
+                          <div className="archive-item-summary">
+                            {oneLine}…
+                          </div>
+                        )}
+                      </div>
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </section>
+      </main>
+    </>
   );
 }
-

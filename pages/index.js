@@ -7,24 +7,22 @@ import { listSummaryIds, getSummary } from "../lib/redis";
 import SummaryTab from "../components/home/SummaryTab";
 import DetailsTab from "../components/home/DetailsTab";
 import QnaTab from "../components/home/QnaTab";
-import ChatWidget from "../components/common/ChatWidget";
-const YOUTUBE_URL =
-  "https://www.youtube.com/channel/UCRSiC2NpJQcvbHX6OdHV4VQ";
-const BLOG_URL = "https://blog.naver.com/yym0072";
-// 이건 네 텔레그램 아이디로 바꿔줘야 함
-const TELEGRAM_URL = "https://t.me/your_telegram_username";
 import ArchiveTab from "../components/home/ArchiveTab";
-import crypto from "crypto";
-import { saveSummary } from "../lib/redis";
 
-// 구글 지도 embed / 링크 (주소 수정해도 됨)
+const YOUTUBE_URL = "https://www.youtube.com/channel/UCRSiC2NpJQcvbHX6OdHV4VQ";
+const BLOG_URL = "https://blog.naver.com/yym0072";
 const MAP_EMBED_URL =
   "https://www.google.com/maps?q=대구광역시+동구+검사동+중앙열쇠&output=embed";
 const MAP_LINK_URL =
   "https://www.google.com/maps/search/?api=1&query=대구광역시+동구+검사동+중앙열쇠";
-
-
 const PHONE = "010-3503-6919";
+
+const TABS = [
+  { id: "summary", label: "한눈에 보기" },
+  { id: "details", label: "상세 정보" },
+  { id: "qna", label: "Q&A" },
+  { id: "archive", label: "요약 저장" },
+];
 
 export default function Home({ youtubeItems, blogItems, archiveItems }) {
   const [activeTab, setActiveTab] = useState("summary");
@@ -92,8 +90,7 @@ export default function Home({ youtubeItems, blogItems, archiveItems }) {
         <meta property="og:url" content="https://smilekey.me" />
         <meta property="og:site_name" content="중앙열쇠" />
         <meta property="og:locale" content="ko_KR" />
-        {/* og:image 필요하면 public 경로로 하나 지정해서 추가 */}
-        {/* <meta property="og:image" content="https://smilekey.me/og-image.png" /> */}
+        <meta property="og:image" content="https://smilekey.me/og-image.png" />
 
         <link rel="canonical" href="https://smilekey.me" />
 
@@ -104,7 +101,6 @@ export default function Home({ youtubeItems, blogItems, archiveItems }) {
       </Head>
 
       <main className="container">
-        {/* 상단 헤더 + 큰 전화 버튼은 모든 탭 공통 */}
         <header className="header">
           <div className="header-badge">대구 동구 · 자동차 키 · 도어락</div>
           <h1 className="header-title">중앙열쇠</h1>
@@ -123,88 +119,55 @@ export default function Home({ youtubeItems, blogItems, archiveItems }) {
           </p>
         </section>
 
-          <div className="promo-badge">
-  🎁 <strong>홈페이지 보고 연락 시 10% 할인</strong>
-  <span className="promo-sub"> (일부 품목 제외, 최대 5만원)</span>
-</div>
+        <div className="promo-badge">
+          🎁 <strong>홈페이지 보고 연락 시 10% 할인</strong>
+          <span className="promo-sub"> (일부 품목 제외, 최대 5만원)</span>
+        </div>
 
-        {/* 탭 네비게이션 */}
-        <nav className="tab-nav">
-          <button
-            type="button"
-            className={`tab-button ${
-              activeTab === "summary" ? "tab-button--active" : ""
-            }`}
-            onClick={() => setActiveTab("summary")}
-          >
-            한눈에 보기
-          </button>
-          <button
-            type="button"
-            className={`tab-button ${
-              activeTab === "details" ? "tab-button--active" : ""
-            }`}
-            onClick={() => setActiveTab("details")}
-          >
-            상세 정보
-          </button>
-          <button
-            type="button"
-            className={`tab-button ${
-              activeTab === "qna" ? "tab-button--active" : ""
-            }`}
-            onClick={() => setActiveTab("qna")}
-          >
-            Q&A
-          </button>
-
+        <nav className="tab-nav" role="tablist" aria-label="메뉴">
+          {TABS.map((tab) => (
             <button
-  type="button"
-  className={`tab-button ${
-    activeTab === "archive" ? "tab-button--active" : ""
-  }`}
-  onClick={() => setActiveTab("archive")}
->
-  요약 저장
-</button>
-
+              key={tab.id}
+              type="button"
+              role="tab"
+              aria-selected={activeTab === tab.id}
+              className={`tab-button ${activeTab === tab.id ? "tab-button--active" : ""}`}
+              onClick={() => setActiveTab(tab.id)}
+            >
+              {tab.label}
+            </button>
+          ))}
         </nav>
 
-        {/* 탭 내용 */}
-        {activeTab === "summary" && (
-          <SummaryTab
-            phone={PHONE}
-            youtubeItems={youtubeItems}
-            blogItems={blogItems}
-            youtubeUrl={YOUTUBE_URL}
-            blogUrl={BLOG_URL}
-            mapEmbedUrl={MAP_EMBED_URL}
-            mapLinkUrl={MAP_LINK_URL}
-            telegramUrl={TELEGRAM_URL}
-            archiveItems={archiveItems}
-          />
-        )}
-
-
-        {activeTab === "details" && <DetailsTab phone={PHONE} />}
-
-        {activeTab === "qna" && <QnaTab />}
-
+        <div role="tabpanel">
+          {activeTab === "summary" && (
+            <SummaryTab
+              phone={PHONE}
+              youtubeItems={youtubeItems}
+              blogItems={blogItems}
+              youtubeUrl={YOUTUBE_URL}
+              blogUrl={BLOG_URL}
+              mapEmbedUrl={MAP_EMBED_URL}
+              mapLinkUrl={MAP_LINK_URL}
+              archiveItems={archiveItems}
+            />
+          )}
+          {activeTab === "details" && (
+            <DetailsTab phone={PHONE} mapLinkUrl={MAP_LINK_URL} />
+          )}
+          {activeTab === "qna" && <QnaTab />}
           {activeTab === "archive" && <ArchiveTab />}
+        </div>
       </main>
 
-      {/* 모바일 하단 고정 전화바 (탭과 무관) */}
       <a href={`tel:${PHONE}`} className="fixed-call-bar">
         <div className="fixed-call-bar-text">📞 중앙열쇠 전화하기</div>
       </a>
-      <ChatWidget />
     </>
-
   );
 }
 
-// ---- 서버에서 RSS 불러오기 ----
-export async function getServerSideProps() {
+export async function getStaticProps() {
   const parser = new XMLParser({ ignoreAttributes: false });
 
   const youtubeFeedUrl =
@@ -214,7 +177,6 @@ export async function getServerSideProps() {
   let youtubeItems = [];
   let blogItems = [];
 
-  // 유튜브
   try {
     const ytRes = await fetch(youtubeFeedUrl);
     const ytXml = await ytRes.text();
@@ -247,7 +209,6 @@ export async function getServerSideProps() {
     console.error("YouTube RSS error:", e);
   }
 
-  // 네이버 블로그
   try {
     const blogRes = await fetch(blogFeedUrl);
     const blogXml = await blogRes.text();
@@ -293,7 +254,7 @@ export async function getServerSideProps() {
   } catch (e) {
     console.error("Blog RSS error:", e);
   }
-  // ✅ 아카이브(요약 저장소) 최신 3개 가져오기
+
   let archiveItems = [];
   try {
     const ids = await listSummaryIds(3);
@@ -308,13 +269,12 @@ export async function getServerSideProps() {
     console.error("ArchiveItems load error:", e);
   }
 
-
   return {
-  props: {
-    youtubeItems,
-    blogItems,
-    archiveItems, // ✅ 추가
-  },
-};
-
+    props: {
+      youtubeItems,
+      blogItems,
+      archiveItems,
+    },
+    revalidate: 300,
+  };
 }
