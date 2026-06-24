@@ -30,6 +30,8 @@ export default function ArchiveList({ items }) {
           name="description"
           content="대구 동구 중앙열쇠의 자동차 키·스마트키·도어락 작업 사례 모음. 유튜브·블로그 요약 아카이브."
         />
+        {/* 요약 아카이브는 검색 색인 제외(온사이트 보조용) */}
+        <meta name="robots" content="noindex, follow" />
         <link rel="canonical" href={`${SITE_URL}/archive`} />
         <meta property="og:title" content="작업 아카이브 | 대구 중앙열쇠" />
         <meta property="og:url" content={`${SITE_URL}/archive`} />

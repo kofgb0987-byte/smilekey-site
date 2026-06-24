@@ -96,6 +96,8 @@ export default function ArchiveDetail({ item }) {
       <Head>
         <title>{pageTitle}</title>
         <meta name="description" content={desc} />
+        {/* 본인 블로그/유튜브 원본과 중복 → 검색 색인 제외(온사이트 보조용). 링크는 따라가도록 follow */}
+        <meta name="robots" content="noindex, follow" />
         <link rel="canonical" href={canonical} />
 
         {/* 네이버 날짜 표시용 */}

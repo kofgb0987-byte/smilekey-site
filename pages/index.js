@@ -16,6 +16,8 @@ const MAP_EMBED_URL =
 const MAP_LINK_URL =
   "https://www.google.com/maps/search/?api=1&query=대구광역시+동구+검사동+중앙열쇠";
 const PHONE = "010-3503-6919";
+// 정확한 매장 위경도를 넣으면 LocalBusiness geo가 자동 적용됩니다. (예: { lat: 35.8797, lng: 128.6650 })
+const GEO = null;
 
 const TABS = [
   { id: "summary", label: "한눈에 보기" },
@@ -30,15 +32,24 @@ export default function Home({ youtubeItems, blogItems, archiveItems }) {
   const businessJsonLd = {
     "@context": "https://schema.org",
     "@type": "LocalBusiness",
+    "@id": "https://smilekey.me/#business",
     name: "중앙열쇠",
     url: "https://smilekey.me",
     telephone: PHONE,
+    image: "https://smilekey.me/og-image.png",
+    priceRange: "₩₩",
+    hasMap: MAP_LINK_URL,
+    paymentAccepted: "현금, 카드, 계좌이체",
+    currenciesAccepted: "KRW",
     address: {
       "@type": "PostalAddress",
       addressCountry: "KR",
       addressLocality: "대구광역시 동구",
       streetAddress: "검사동",
     },
+    ...(GEO
+      ? { geo: { "@type": "GeoCoordinates", latitude: GEO.lat, longitude: GEO.lng } }
+      : {}),
     areaServed: [
       "대구광역시 동구",
       "대구광역시 수성구",
@@ -147,9 +158,25 @@ export default function Home({ youtubeItems, blogItems, archiveItems }) {
           <a href={`tel:${PHONE}`} className="call-button">
             📞 {PHONE}
           </a>
+          <a
+            href={`sms:${PHONE}`}
+            style={{
+              display: "block",
+              textAlign: "center",
+              marginTop: 10,
+              padding: "0.85rem 1rem",
+              borderRadius: "0.75rem",
+              border: "1.5px solid #1e40af",
+              color: "#1e40af",
+              fontWeight: 700,
+              textDecoration: "none",
+            }}
+          >
+            💬 문자로 견적 문의
+          </a>
           <p className="call-caption">
             차량 키 분실 · 예비키 · 폴딩키 · 도어락 문의는{" "}
-            <strong>전화가 가장 빠릅니다.</strong>
+            <strong>전화가 가장 빠릅니다.</strong> 통화가 어려우면 문자도 가능합니다.
           </p>
         </section>
 
@@ -157,6 +184,37 @@ export default function Home({ youtubeItems, blogItems, archiveItems }) {
           🎁 <strong>홈페이지 보고 연락 시 10% 할인</strong>
           <span className="promo-sub"> (일부 품목 제외, 최대 5만원)</span>
         </div>
+
+        <ul
+          aria-label="중앙열쇠 특징"
+          style={{
+            listStyle: "none",
+            display: "flex",
+            flexWrap: "wrap",
+            gap: 8,
+            padding: 0,
+            margin: "0.75rem 0 0",
+          }}
+        >
+          {["24시간 문의", "대구 전 지역 출장", "국산·수입차 전 차종", "현금·카드·계좌이체"].map(
+            (t) => (
+              <li
+                key={t}
+                style={{
+                  fontSize: 13,
+                  fontWeight: 600,
+                  color: "#1e3a8a",
+                  background: "#eff6ff",
+                  border: "1px solid #dbeafe",
+                  borderRadius: 999,
+                  padding: "5px 12px",
+                }}
+              >
+                ✓ {t}
+              </li>
+            )
+          )}
+        </ul>
 
         <nav className="tab-nav" role="tablist" aria-label="메뉴">
           {TABS.map((tab) => (
