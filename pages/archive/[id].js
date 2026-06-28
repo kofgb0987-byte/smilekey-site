@@ -67,6 +67,8 @@ export default function ArchiveDetail({ item }) {
   const dateIso = dateStr
     ? new Date(dateStr).toISOString()
     : new Date().toISOString();
+  // 네이버가 날짜를 인식하기 쉬운 "2026.05.14." 형식
+  const dateDot = dateStr ? dateStr.slice(0, 10).replace(/-/g, ".") + "." : "";
 
   const articleJsonLd = {
     "@context": "https://schema.org",
@@ -96,8 +98,6 @@ export default function ArchiveDetail({ item }) {
       <Head>
         <title>{pageTitle}</title>
         <meta name="description" content={desc} />
-        {/* 본인 블로그/유튜브 원본과 중복 → 검색 색인 제외(온사이트 보조용). 링크는 따라가도록 follow */}
-        <meta name="robots" content="noindex, follow" />
         <link rel="canonical" href={canonical} />
 
         {/* 네이버 날짜 표시용 */}
@@ -129,7 +129,11 @@ export default function ArchiveDetail({ item }) {
         <header className="header">
           <div className="header-badge">{item.source}</div>
           <h1 className="header-title">{safeTitle}</h1>
-          <p className="header-sub">{dateStr}</p>
+          {dateDot && (
+            <p className="header-sub">
+              <time dateTime={dateIso}>{dateDot}</time> · 작성
+            </p>
+          )}
         </header>
 
         <div style={{ marginTop: 8 }}>
