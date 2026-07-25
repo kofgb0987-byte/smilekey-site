@@ -5,7 +5,7 @@
 
 import crypto from "crypto";
 import { collectAllCandidates } from "../../../lib/collect";
-import { aiWriteDaeguPost } from "../../../lib/ai";
+import { aiWriteDaeguPost, aiReviewDaeguPost } from "../../../lib/ai";
 import { saveDaeguPost, filterUnseenLinks, markDaeguSeen } from "../../../lib/redis";
 
 const MAX_CANDIDATES_TO_AI = 25;
@@ -45,6 +45,27 @@ export default async function handler(req, res) {
     const post = await aiWriteDaeguPost({ candidates: fresh, today });
     if (!post) {
       return res.status(500).json({ ok: false, error: "AI 작성 실패" });
+    }
+    if (post.skip) {
+      return res.status(200).json({ ok: true, skipped: `작성 스킵: ${post.reason}` });
+    }
+
+    // 3-1) 다중 근거 강제 — 서로 다른 기사 2개 미만이면 발행 안 함
+    if (post.used_links.length < 2) {
+      await markDaeguSeen(post.used_links); // 같은 단일근거 주제 반복 방지
+      return res.status(200).json({ ok: true, skipped: "근거 부족(기사 2개 미만)", title: post.title });
+    }
+
+    // 3-2) 발행 전 팩트체크 — 거부되면 발행 안 함
+    const review = await aiReviewDaeguPost({ post, candidates: fresh, today });
+    if (!review.approved) {
+      await markDaeguSeen(post.used_links); // 같은 문제 주제 반복 방지
+      return res.status(200).json({
+        ok: true,
+        skipped: "검수 거부",
+        title: post.title,
+        issues: review.issues,
+      });
     }
 
     // 4) 저장 (id는 사용 소재 첫 링크 기준 — 같은 소재 재발행 방지)
