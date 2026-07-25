@@ -3,7 +3,7 @@
 //   node scripts/migrate-redis.mjs \
 //     (env) SRC_URL=https://xxx.upstash.io SRC_TOKEN=... \
 //           DST_URL=https://skdb.hyeongeonnoil.com DST_TOKEN=...
-// 복사 대상: smilekey:* (아카이브/대구소식), chat:conv:* (채팅, TTL 유지)
+// 복사 대상: smilekey:* (아카이브/대구소식) — 채팅 기능은 2026-07-25 제거됨
 // 멱등: 다시 실행해도 덮어쓸 뿐 중복 안 생김.
 
 import { Redis } from "@upstash/redis";
@@ -85,7 +85,7 @@ async function copyKey(key) {
   return true;
 }
 
-const patterns = ["smilekey:*", "chat:conv:*"];
+const patterns = ["smilekey:*"];
 let total = 0;
 
 for (const pattern of patterns) {
