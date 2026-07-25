@@ -1,12 +1,11 @@
-# 대구 소식 자동 발행 — 하루 2회 (Vercel Hobby 크론은 1일 1회 제한이라 GitHub Actions 사용)
-# 필요: 레포 Settings → Secrets and variables → Actions → CRON_SECRET (Vercel 환경변수와 동일 값)
+# 대구 소식 발행 — 수동 백업 트리거
+# 정규 스케줄(매일 10:00/17:00 KST)은 집 서버 작업 스케줄러(infra/daegu-post.ps1)가 담당 (2026-07-25 전환)
+#   — GitHub 신규계정 Actions 큐 보류 이슈로 이전. 스케줄을 여기 다시 넣으면 이중 발행되니 금지.
+# 필요: 레포 시크릿 CRON_SECRET (Vercel 환경변수와 동일 값)
 name: daegu-post-cron
 
 on:
-  schedule:
-    - cron: "0 1 * * *"   # 10:00 KST
-    - cron: "0 8 * * *"   # 17:00 KST
-  workflow_dispatch: {}    # 수동 실행 버튼
+  workflow_dispatch: {}    # 수동 실행 버튼만
 
 jobs:
   post:
