@@ -1,0 +1,19 @@
+# 대구 소식 자동 발행 — 하루 2회 (Vercel Hobby 크론은 1일 1회 제한이라 GitHub Actions 사용)
+# 필요: 레포 Settings → Secrets and variables → Actions → CRON_SECRET (Vercel 환경변수와 동일 값)
+name: daegu-post-cron
+
+on:
+  schedule:
+    - cron: "0 1 * * *"   # 10:00 KST
+    - cron: "0 8 * * *"   # 17:00 KST
+  workflow_dispatch: {}    # 수동 실행 버튼
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger daegu-post
+        run: |
+          curl -fsS -X POST "https://smilekey.me/api/cron/daegu-post" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            --max-time 290

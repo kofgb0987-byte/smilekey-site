@@ -42,9 +42,12 @@ export default function ArchiveList({ items }) {
           <p className="header-sub">유튜브·블로그 요약 모음</p>
         </header>
 
-        <div style={{ marginBottom: 12 }}>
+        <div style={{ marginBottom: 12, display: "flex", gap: 14 }}>
           <Link href="/" style={{ fontSize: 13, opacity: 0.75 }}>
             ← 홈으로
+          </Link>
+          <Link href="/daegu" style={{ fontSize: 13, opacity: 0.75 }}>
+            대구 소식
           </Link>
         </div>
 
