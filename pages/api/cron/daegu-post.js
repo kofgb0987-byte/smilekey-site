@@ -50,7 +50,9 @@ export default async function handler(req, res) {
       return res.status(200).json({ ok: true, skipped: `작성 스킵: ${post.reason}` });
     }
 
-    // 3-1) 다중 근거 강제 — 서로 다른 기사 2개 미만이면 발행 안 함
+    // 3-1) 다중 근거 강제 — 실제 후보에 존재하는 링크만 인정(AI가 링크를 지어내는 것 방지)
+    const freshLinks = new Set(fresh.map((c) => c.link));
+    post.used_links = post.used_links.filter((l) => freshLinks.has(l));
     if (post.used_links.length < 2) {
       await markDaeguSeen(post.used_links); // 같은 단일근거 주제 반복 방지
       return res.status(200).json({ ok: true, skipped: "근거 부족(기사 2개 미만)", title: post.title });
