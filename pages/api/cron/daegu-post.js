@@ -21,11 +21,15 @@ export default async function handler(req, res) {
     return res.status(401).json({ error: "Unauthorized" });
   }
 
-  const missing = ["NAVER_CLIENT_ID", "NAVER_CLIENT_SECRET", "OPENAI_API_KEY"].filter(
-    (k) => !process.env[k]
-  );
-  if (missing.length) {
-    return res.status(500).json({ ok: false, error: `env 누락: ${missing.join(", ")}` });
+  const hasNaver =
+    (process.env.NAVER_APIHUB_KEY_ID && process.env.NAVER_APIHUB_KEY) ||
+    (process.env.NAVER_CLIENT_ID && process.env.NAVER_CLIENT_SECRET);
+  if (!hasNaver || !process.env.OPENAI_API_KEY) {
+    return res.status(500).json({
+      ok: false,
+      error:
+        "env 누락: OPENAI_API_KEY + 네이버 인증(NAVER_APIHUB_KEY_ID/NAVER_APIHUB_KEY 권장, 또는 NAVER_CLIENT_ID/NAVER_CLIENT_SECRET)",
+    });
   }
 
   try {
