@@ -4,7 +4,7 @@
 // 흐름: 네이버 뉴스/블로그 수집 → 미사용 링크 필터 → AI가 주제 선택+정보글 작성 → 저장
 
 import crypto from "crypto";
-import { collectDaeguCandidates } from "../../../lib/naver";
+import { collectAllCandidates } from "../../../lib/collect";
 import { aiWriteDaeguPost } from "../../../lib/ai";
 import { saveDaeguPost, filterUnseenLinks, markDaeguSeen } from "../../../lib/redis";
 
@@ -21,20 +21,14 @@ export default async function handler(req, res) {
     return res.status(401).json({ error: "Unauthorized" });
   }
 
-  const hasNaver =
-    (process.env.NAVER_APIHUB_KEY_ID && process.env.NAVER_APIHUB_KEY) ||
-    (process.env.NAVER_CLIENT_ID && process.env.NAVER_CLIENT_SECRET);
-  if (!hasNaver || !process.env.OPENAI_API_KEY) {
-    return res.status(500).json({
-      ok: false,
-      error:
-        "env 누락: OPENAI_API_KEY + 네이버 인증(NAVER_APIHUB_KEY_ID/NAVER_APIHUB_KEY 권장, 또는 NAVER_CLIENT_ID/NAVER_CLIENT_SECRET)",
-    });
+  // 수집은 Google 뉴스 RSS가 기본(키 불필요), 네이버 API는 env 있으면 자동 추가
+  if (!process.env.OPENAI_API_KEY) {
+    return res.status(500).json({ ok: false, error: "env 누락: OPENAI_API_KEY" });
   }
 
   try {
     // 1) 수집
-    const all = await collectDaeguCandidates({ days: 3 });
+    const all = await collectAllCandidates({ days: 3 });
     if (!all.length) {
       return res.status(200).json({ ok: true, skipped: "후보 없음(수집 0건)" });
     }
