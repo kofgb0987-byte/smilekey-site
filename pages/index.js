@@ -1,6 +1,7 @@
 // pages/index.js
 import { useState } from "react";
 import Head from "next/head";
+import Link from "next/link";
 import { XMLParser } from "fast-xml-parser";
 import { listSummaryIds, getSummary } from "../lib/redis";
 
@@ -229,6 +230,13 @@ export default function Home({ youtubeItems, blogItems, archiveItems }) {
               {tab.label}
             </button>
           ))}
+          <Link
+            href="/daegu"
+            className="tab-button"
+            style={{ textDecoration: "none", textAlign: "center" }}
+          >
+            대구 소식
+          </Link>
         </nav>
 
         <div role="tabpanel">
