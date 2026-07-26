@@ -1,7 +1,7 @@
 // pages/daegu/index.js — 대구 소식 목록
 import Head from "next/head";
 import Link from "next/link";
-import { listDaeguIds, getDaeguPost } from "../../lib/redis";
+import { listDaeguIds, getDaeguPost, getDaeguViewMap, topDaeguViewIds } from "../../lib/redis";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://smilekey.me";
 // 🔒 품질 검증 기간 동안 noindex 유지. 콘텐츠 품질 확인 후 true로 바꾸고 sitemap에도 추가할 것.
@@ -16,14 +16,22 @@ export async function getStaticProps() {
       return it && it.title ? { ...it, id } : null;
     })
   );
+  const items = itemsRaw.filter(Boolean);
+
+  // 조회수 + 인기글(조회 상위 3, 조회 0 제외)
+  const viewMap = await getDaeguViewMap(items.map((it) => it.id));
+  const byId = new Map(items.map((it) => [it.id, it]));
+  const popular = (await topDaeguViewIds(3))
+    .filter(({ id }) => byId.has(id))
+    .map(({ id, views }) => ({ id, views, title: byId.get(id).title }));
 
   return {
-    props: { items: itemsRaw.filter(Boolean) },
+    props: { items, viewMap, popular },
     revalidate: 600,
   };
 }
 
-export default function DaeguList({ items }) {
+export default function DaeguList({ items, viewMap = {}, popular = [] }) {
   return (
     <>
       <Head>
@@ -54,6 +62,25 @@ export default function DaeguList({ items }) {
           </Link>
         </div>
 
+        {popular.length > 0 && (
+          <section className="card" style={{ marginBottom: 14 }}>
+            <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 8 }}>🔥 인기글</div>
+            <ol style={{ margin: 0, paddingLeft: 22 }}>
+              {popular.map((p) => (
+                <li key={p.id} style={{ marginBottom: 6 }}>
+                  <Link
+                    href={`/daegu/${encodeURIComponent(p.id)}`}
+                    style={{ textDecoration: "none", color: "inherit" }}
+                  >
+                    {p.title}
+                    <span style={{ fontSize: 12, opacity: 0.6 }}> · 조회 {p.views}</span>
+                  </Link>
+                </li>
+              ))}
+            </ol>
+          </section>
+        )}
+
         <section className="card">
           {items.length === 0 ? (
             <p className="muted-text">아직 소식이 없습니다. 곧 첫 소식이 올라와요!</p>
@@ -74,6 +101,7 @@ export default function DaeguList({ items }) {
                     ) : null}
                     <div style={{ marginTop: 6, fontSize: 12, opacity: 0.6 }}>
                       {it.date}
+                      {viewMap[it.id] ? ` · 조회 ${viewMap[it.id]}` : ""}
                       {Array.isArray(it.tags) && it.tags.length
                         ? ` · ${it.tags.slice(0, 4).map((t) => `#${t}`).join(" ")}`
                         : ""}

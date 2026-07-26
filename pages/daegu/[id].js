@@ -1,6 +1,7 @@
 // pages/daegu/[id].js — 대구 소식 상세
 import Head from "next/head";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { listDaeguIds, getDaeguPost } from "../../lib/redis";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://smilekey.me";
@@ -28,6 +29,28 @@ export async function getStaticProps({ params }) {
 }
 
 export default function DaeguDetail({ item }) {
+  const [views, setViews] = useState(null);
+
+  // 조회수: 세션 최초 1회만 +1, 재방문은 읽기만
+  useEffect(() => {
+    const key = `daegu-viewed-${item.id}`;
+    let seen = false;
+    try {
+      seen = !!sessionStorage.getItem(key);
+    } catch {}
+    fetch(`/api/daegu/view?id=${encodeURIComponent(item.id)}`, {
+      method: seen ? "GET" : "POST",
+    })
+      .then((r) => r.json())
+      .then((d) => {
+        if (d?.ok) setViews(d.views);
+        try {
+          sessionStorage.setItem(key, "1");
+        } catch {}
+      })
+      .catch(() => {});
+  }, [item.id]);
+
   const canonical = `${SITE_URL}/daegu/${encodeURIComponent(item.id)}`;
   const desc = (item.hook || item.title).slice(0, 155);
   const sections = Array.isArray(item.sections) ? item.sections : [];
@@ -59,7 +82,10 @@ export default function DaeguDetail({ item }) {
 
         <article className="card">
           <h1 style={{ marginTop: 0, fontSize: 22, lineHeight: 1.35 }}>{item.title}</h1>
-          <div style={{ fontSize: 12, opacity: 0.6, marginBottom: 14 }}>{item.date}</div>
+          <div style={{ fontSize: 12, opacity: 0.6, marginBottom: 14 }}>
+            {item.date}
+            {views !== null ? ` · 조회 ${views}` : ""}
+          </div>
 
           {item.hook ? (
             <p style={{ fontSize: 15, fontWeight: 500, opacity: 0.9 }}>{item.hook}</p>
