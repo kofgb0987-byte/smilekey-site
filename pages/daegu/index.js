@@ -1,7 +1,13 @@
 // pages/daegu/index.js — 대구 소식 목록
 import Head from "next/head";
 import Link from "next/link";
-import { listDaeguIds, getDaeguPost, getDaeguViewMap, topDaeguViewIds } from "../../lib/redis";
+import {
+  listDaeguIds,
+  getDaeguPost,
+  getDaeguViewMap,
+  getDaeguLikeMap,
+  topDaeguViewIds,
+} from "../../lib/redis";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://smilekey.me";
 // 🔒 품질 검증 기간 동안 noindex 유지. 콘텐츠 품질 확인 후 true로 바꾸고 sitemap에도 추가할 것.
@@ -18,20 +24,21 @@ export async function getStaticProps() {
   );
   const items = itemsRaw.filter(Boolean);
 
-  // 조회수 + 인기글(조회 상위 3, 조회 0 제외)
+  // 조회수/좋아요 + 인기글(조회 상위 3, 조회 0 제외)
   const viewMap = await getDaeguViewMap(items.map((it) => it.id));
+  const likeMap = await getDaeguLikeMap(items.map((it) => it.id));
   const byId = new Map(items.map((it) => [it.id, it]));
   const popular = (await topDaeguViewIds(3))
     .filter(({ id }) => byId.has(id))
     .map(({ id, views }) => ({ id, views, title: byId.get(id).title }));
 
   return {
-    props: { items, viewMap, popular },
+    props: { items, viewMap, likeMap, popular },
     revalidate: 600,
   };
 }
 
-export default function DaeguList({ items, viewMap = {}, popular = [] }) {
+export default function DaeguList({ items, viewMap = {}, likeMap = {}, popular = [] }) {
   return (
     <>
       <Head>
@@ -102,6 +109,7 @@ export default function DaeguList({ items, viewMap = {}, popular = [] }) {
                     <div style={{ marginTop: 6, fontSize: 12, opacity: 0.6 }}>
                       {it.date}
                       {viewMap[it.id] ? ` · 조회 ${viewMap[it.id]}` : ""}
+                      {likeMap[it.id] ? ` · ♥ ${likeMap[it.id]}` : ""}
                       {Array.isArray(it.tags) && it.tags.length
                         ? ` · ${it.tags.slice(0, 4).map((t) => `#${t}`).join(" ")}`
                         : ""}

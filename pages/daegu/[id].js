@@ -30,6 +30,109 @@ export async function getStaticProps({ params }) {
 
 export default function DaeguDetail({ item }) {
   const [views, setViews] = useState(null);
+  const [likes, setLikes] = useState(null);
+  const [liked, setLiked] = useState(false);
+  const [shareMsg, setShareMsg] = useState("");
+  const [comments, setComments] = useState([]);
+  const [commentTotal, setCommentTotal] = useState(0);
+  const [cName, setCName] = useState("");
+  const [cText, setCText] = useState("");
+  const [cBusy, setCBusy] = useState(false);
+  const [cMsg, setCMsg] = useState("");
+
+  // 좋아요 초기값 + 내가 눌렀는지
+  useEffect(() => {
+    try {
+      setLiked(!!localStorage.getItem(`daegu-liked-${item.id}`));
+    } catch {}
+    fetch(`/api/daegu/like?id=${encodeURIComponent(item.id)}`)
+      .then((r) => r.json())
+      .then((d) => d?.ok && setLikes(d.likes))
+      .catch(() => {});
+  }, [item.id]);
+
+  // 댓글 로드
+  useEffect(() => {
+    fetch(`/api/daegu/comments?id=${encodeURIComponent(item.id)}`)
+      .then((r) => r.json())
+      .then((d) => {
+        if (d?.ok) {
+          setComments(d.items);
+          setCommentTotal(d.total);
+        }
+      })
+      .catch(() => {});
+  }, [item.id]);
+
+  async function toggleLike() {
+    const action = liked ? "unlike" : "like";
+    setLiked(!liked); // 낙관적 반영
+    try {
+      if (liked) localStorage.removeItem(`daegu-liked-${item.id}`);
+      else localStorage.setItem(`daegu-liked-${item.id}`, "1");
+    } catch {}
+    try {
+      const r = await fetch(`/api/daegu/like?id=${encodeURIComponent(item.id)}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action }),
+      });
+      const d = await r.json();
+      if (d?.ok) setLikes(d.likes);
+    } catch {}
+  }
+
+  async function sharePost() {
+    const url = `${SITE_URL}/daegu/${encodeURIComponent(item.id)}`;
+    let done = false;
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: item.title, url });
+        done = true;
+      } catch {} // 사용자가 공유창을 닫은 경우 등
+    }
+    if (!done) {
+      try {
+        await navigator.clipboard.writeText(url);
+        setShareMsg("링크가 복사됐어요!");
+        setTimeout(() => setShareMsg(""), 2500);
+        done = true;
+      } catch {
+        setShareMsg(url);
+      }
+    }
+    if (done) {
+      fetch(`/api/daegu/share?id=${encodeURIComponent(item.id)}`, { method: "POST" }).catch(() => {});
+    }
+  }
+
+  async function submitComment(e) {
+    e.preventDefault();
+    if (!cText.trim() || cBusy) return;
+    setCBusy(true);
+    setCMsg("");
+    try {
+      const r = await fetch(`/api/daegu/comments?id=${encodeURIComponent(item.id)}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: cName, text: cText }),
+      });
+      const d = await r.json();
+      if (d?.ok && d.comment) {
+        setComments([d.comment, ...comments]);
+        setCommentTotal(commentTotal + 1);
+        setCText("");
+        setCMsg("등록됐어요!");
+      } else {
+        setCMsg(d?.error || "등록에 실패했어요. 잠시 후 다시 시도해 주세요.");
+      }
+    } catch {
+      setCMsg("등록에 실패했어요. 잠시 후 다시 시도해 주세요.");
+    } finally {
+      setCBusy(false);
+      setTimeout(() => setCMsg(""), 3000);
+    }
+  }
 
   // 조회수: 세션 최초 1회만 +1, 재방문은 읽기만
   useEffect(() => {
@@ -104,6 +207,42 @@ export default function DaeguDetail({ item }) {
             </div>
           ) : null}
 
+          <div style={{ marginTop: 18, display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
+            <button
+              type="button"
+              onClick={toggleLike}
+              style={{
+                padding: "8px 16px",
+                borderRadius: 999,
+                border: liked ? "1.5px solid #dc2626" : "1.5px solid rgba(0,0,0,0.2)",
+                background: liked ? "#fef2f2" : "transparent",
+                color: liked ? "#dc2626" : "inherit",
+                fontWeight: 600,
+                cursor: "pointer",
+                fontSize: 14,
+              }}
+            >
+              {liked ? "♥" : "♡"} 좋아요{likes !== null ? ` ${likes}` : ""}
+            </button>
+            <button
+              type="button"
+              onClick={sharePost}
+              style={{
+                padding: "8px 16px",
+                borderRadius: 999,
+                border: "1.5px solid rgba(0,0,0,0.2)",
+                background: "transparent",
+                color: "inherit",
+                fontWeight: 600,
+                cursor: "pointer",
+                fontSize: 14,
+              }}
+            >
+              🔗 공유하기
+            </button>
+            {shareMsg && <span style={{ fontSize: 13, opacity: 0.75 }}>{shareMsg}</span>}
+          </div>
+
           {sources.length ? (
             <div style={{ marginTop: 18, paddingTop: 12, borderTop: "1px solid rgba(0,0,0,0.08)" }}>
               <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 6 }}>참고한 소식</div>
@@ -137,6 +276,96 @@ export default function DaeguDetail({ item }) {
             문의 <a href={`tel:${PHONE}`}>{PHONE}</a>
           </div>
         </article>
+
+        <section className="card" style={{ marginTop: 14 }}>
+          <h2 style={{ marginTop: 0, fontSize: 17 }}>💬 댓글 {commentTotal > 0 ? commentTotal : ""}</h2>
+
+          <form onSubmit={submitComment} style={{ marginBottom: 16 }}>
+            <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
+              <input
+                type="text"
+                value={cName}
+                onChange={(e) => setCName(e.target.value)}
+                placeholder="닉네임 (선택)"
+                maxLength={20}
+                style={{
+                  flex: "0 0 140px",
+                  padding: "8px 10px",
+                  borderRadius: 8,
+                  border: "1px solid rgba(0,0,0,0.2)",
+                  fontSize: 14,
+                }}
+              />
+              {/* 봇 함정 필드 — 사람에겐 안 보임 */}
+              <input
+                type="text"
+                name="website"
+                tabIndex={-1}
+                autoComplete="off"
+                style={{ position: "absolute", left: -9999, width: 1, height: 1 }}
+                aria-hidden="true"
+              />
+            </div>
+            <textarea
+              value={cText}
+              onChange={(e) => setCText(e.target.value)}
+              placeholder="댓글을 남겨보세요 (500자 이내)"
+              maxLength={500}
+              rows={3}
+              style={{
+                width: "100%",
+                padding: "10px",
+                borderRadius: 8,
+                border: "1px solid rgba(0,0,0,0.2)",
+                fontSize: 14,
+                resize: "vertical",
+                boxSizing: "border-box",
+              }}
+            />
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 8 }}>
+              <button
+                type="submit"
+                disabled={cBusy || !cText.trim()}
+                style={{
+                  padding: "8px 18px",
+                  borderRadius: 8,
+                  border: "none",
+                  background: cText.trim() ? "#1e40af" : "rgba(0,0,0,0.15)",
+                  color: "#fff",
+                  fontWeight: 700,
+                  cursor: cText.trim() ? "pointer" : "default",
+                  fontSize: 14,
+                }}
+              >
+                {cBusy ? "등록 중…" : "등록"}
+              </button>
+              {cMsg && <span style={{ fontSize: 13, opacity: 0.75 }}>{cMsg}</span>}
+            </div>
+          </form>
+
+          {comments.length === 0 ? (
+            <p style={{ fontSize: 14, opacity: 0.6, margin: 0 }}>첫 댓글을 남겨보세요!</p>
+          ) : (
+            <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+              {comments.map((c) => (
+                <li
+                  key={c.cid}
+                  style={{ padding: "10px 0", borderTop: "1px solid rgba(0,0,0,0.07)" }}
+                >
+                  <div style={{ fontSize: 13, fontWeight: 700 }}>
+                    {c.name || "익명"}
+                    <span style={{ fontWeight: 400, opacity: 0.55, marginLeft: 8, fontSize: 12 }}>
+                      {String(c.ts || "").slice(0, 10)}
+                    </span>
+                  </div>
+                  <div style={{ marginTop: 4, fontSize: 14, lineHeight: 1.6, whiteSpace: "pre-wrap" }}>
+                    {c.text}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
       </main>
     </>
   );
