@@ -8,7 +8,8 @@ import { collectAllCandidates } from "../../../lib/collect";
 import { aiWriteDaeguPost, aiReviewDaeguPost } from "../../../lib/ai";
 import { saveDaeguPost, filterUnseenLinks, markDaeguSeen } from "../../../lib/redis";
 
-const MAX_CANDIDATES_TO_AI = 25;
+// 예고 기사(행사 며칠 전 보도)가 최신순 정렬에서 잘리지 않도록 넉넉히
+const MAX_CANDIDATES_TO_AI = 40;
 
 function todayKst() {
   return new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
@@ -27,8 +28,8 @@ export default async function handler(req, res) {
   }
 
   try {
-    // 1) 수집
-    const all = await collectAllCandidates({ days: 3 });
+    // 1) 수집 — 4일: 축제 예고 기사가 행사 직전에 범위 밖으로 밀리지 않게
+    const all = await collectAllCandidates({ days: 4 });
     if (!all.length) {
       return res.status(200).json({ ok: true, skipped: "후보 없음(수집 0건)" });
     }
