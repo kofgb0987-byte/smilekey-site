@@ -110,9 +110,13 @@ export default function DaeguDetail({ item }) {
               <ul style={{ margin: 0, paddingLeft: 18, fontSize: 13 }}>
                 {sources.map((s, i) => (
                   <li key={i} style={{ marginBottom: 4 }}>
-                    <a href={s.link} target="_blank" rel="noreferrer nofollow">
-                      {s.title}
-                    </a>
+                    {String(s.link || "").startsWith("http") ? (
+                      <a href={s.link} target="_blank" rel="noreferrer nofollow">
+                        {s.title}
+                      </a>
+                    ) : (
+                      <span>{s.title} (한국관광공사 행사데이터)</span>
+                    )}
                   </li>
                 ))}
               </ul>
