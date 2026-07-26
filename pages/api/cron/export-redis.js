@@ -9,7 +9,8 @@ export default async function handler(req, res) {
     return res.status(401).json({ ok: false });
   }
 
-  const cursor = Number(req.query.cursor || 0);
+  // ⚠️ SCAN 커서는 64비트 — JS Number로 다루면 정밀도 손실로 순회가 깨짐. 문자열 유지 필수.
+  const cursor = String(req.query.cursor || "0");
 
   try {
     const [nextCursor, keys] = await redis.scan(cursor, { match: "smilekey:*", count: 50 });
@@ -29,7 +30,7 @@ export default async function handler(req, res) {
       entries.push({ key, type, value, ttl });
     }
 
-    return res.status(200).json({ ok: true, cursor: Number(nextCursor), entries });
+    return res.status(200).json({ ok: true, cursor: String(nextCursor), entries });
   } catch (e) {
     console.error("export-redis error:", e);
     return res.status(500).json({ ok: false, error: String(e) });
