@@ -240,7 +240,9 @@ export default function DaeguDetail({ item }) {
             >
               🔗 공유하기
             </button>
-            {shareMsg && <span style={{ fontSize: 13, opacity: 0.75 }}>{shareMsg}</span>}
+            {shareMsg && (
+              <span style={{ fontSize: 13, opacity: 0.75, overflowWrap: "anywhere" }}>{shareMsg}</span>
+            )}
           </div>
 
           {sources.length ? (
@@ -290,10 +292,11 @@ export default function DaeguDetail({ item }) {
                 maxLength={20}
                 style={{
                   flex: "0 0 140px",
+                  maxWidth: "45%",
                   padding: "8px 10px",
                   borderRadius: 8,
                   border: "1px solid rgba(0,0,0,0.2)",
-                  fontSize: 14,
+                  fontSize: 16, // 16px 미만이면 iOS가 포커스 시 화면을 확대함
                 }}
               />
               {/* 봇 함정 필드 — 사람에겐 안 보임 */}
@@ -317,7 +320,7 @@ export default function DaeguDetail({ item }) {
                 padding: "10px",
                 borderRadius: 8,
                 border: "1px solid rgba(0,0,0,0.2)",
-                fontSize: 14,
+                fontSize: 16, // 16px 미만이면 iOS가 포커스 시 화면을 확대함
                 resize: "vertical",
                 boxSizing: "border-box",
               }}
@@ -358,7 +361,15 @@ export default function DaeguDetail({ item }) {
                       {String(c.ts || "").slice(0, 10)}
                     </span>
                   </div>
-                  <div style={{ marginTop: 4, fontSize: 14, lineHeight: 1.6, whiteSpace: "pre-wrap" }}>
+                  <div
+                    style={{
+                      marginTop: 4,
+                      fontSize: 14,
+                      lineHeight: 1.6,
+                      whiteSpace: "pre-wrap",
+                      overflowWrap: "anywhere",
+                    }}
+                  >
                     {c.text}
                   </div>
                 </li>

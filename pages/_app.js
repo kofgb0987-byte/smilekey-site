@@ -1,6 +1,7 @@
 // pages/_app.js
 import "../styles/globals.css";
 import { Analytics } from "@vercel/analytics/react";
+import Head from "next/head";
 import Script from "next/script";
 import { useEffect } from "react";
 
@@ -28,6 +29,10 @@ export default function MyApp({ Component, pageProps }) {
 
   return (
     <>
+      <Head>
+        {/* 전역 viewport — 개별 페이지 누락 시 모바일이 980px 데스크톱 폭으로 렌더링되는 문제 방지 */}
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+      </Head>
       {GA_ID && (
         <>
           <Script
