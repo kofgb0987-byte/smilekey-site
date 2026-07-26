@@ -6,6 +6,22 @@ import { listDaeguIds, getDaeguPost } from "../../lib/redis";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://smilekey.me";
 const PHONE = "010-3503-6919";
+
+// 랜덤 닉네임 — 대구 감성 (수식어 + 명소/음식, 20자 제한 안쪽)
+const NICK_ADJ = [
+  "느긋한", "신난", "배고픈", "수줍은", "당당한", "촉촉한",
+  "시원한", "포근한", "야무진", "심각한", "해맑은", "궁금한",
+];
+const NICK_NOUN = [
+  "수성못 오리배", "팔공산 다람쥐", "대프리카 생존자", "동성로 멋쟁이",
+  "서문시장 단골", "금호강 수달", "앞산 등산러", "납작만두 러버",
+  "막창 미식가", "김광석길 산책러", "이월드 관람차", "대구 사과",
+  "칠성시장 손님", "83타워 전망러", "치맥 감별사",
+];
+function randomNick() {
+  const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+  return `${pick(NICK_ADJ)} ${pick(NICK_NOUN)}`.slice(0, 20);
+}
 // 🔒 품질 검증 기간 동안 noindex 유지 (index.js와 함께 전환)
 const INDEXABLE = false;
 
@@ -50,6 +66,15 @@ export default function DaeguDetail({ item }) {
       .then((d) => d?.ok && setLikes(d.likes))
       .catch(() => {});
   }, [item.id]);
+
+  // 닉네임: 저장된 게 있으면 재사용, 없으면 랜덤 추천
+  useEffect(() => {
+    let saved = "";
+    try {
+      saved = localStorage.getItem("daegu-nickname") || "";
+    } catch {}
+    setCName(saved || randomNick());
+  }, []);
 
   // 댓글 로드
   useEffect(() => {
@@ -123,6 +148,9 @@ export default function DaeguDetail({ item }) {
         setCommentTotal(commentTotal + 1);
         setCText("");
         setCMsg("등록됐어요!");
+        try {
+          localStorage.setItem("daegu-nickname", cName); // 다음에도 같은 닉네임
+        } catch {}
       } else {
         setCMsg(d?.error || "등록에 실패했어요. 잠시 후 다시 시도해 주세요.");
       }
@@ -306,22 +334,40 @@ export default function DaeguDetail({ item }) {
           <h2 style={{ marginTop: 0, fontSize: 17 }}>💬 댓글 {commentTotal > 0 ? commentTotal : ""}</h2>
 
           <form onSubmit={submitComment} style={{ marginBottom: 16 }}>
-            <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
+            <div style={{ display: "flex", gap: 8, marginBottom: 8, alignItems: "center" }}>
               <input
                 type="text"
                 value={cName}
                 onChange={(e) => setCName(e.target.value)}
-                placeholder="닉네임 (선택)"
+                placeholder="닉네임"
                 maxLength={20}
                 style={{
-                  flex: "0 0 140px",
-                  maxWidth: "45%",
+                  flex: "1 1 auto",
+                  minWidth: 0,
+                  maxWidth: 220,
                   padding: "8px 10px",
                   borderRadius: 8,
                   border: "1px solid rgba(0,0,0,0.2)",
                   fontSize: 16, // 16px 미만이면 iOS가 포커스 시 화면을 확대함
                 }}
               />
+              <button
+                type="button"
+                onClick={() => setCName(randomNick())}
+                title="닉네임 다시 뽑기"
+                aria-label="닉네임 다시 뽑기"
+                style={{
+                  padding: "8px 12px",
+                  borderRadius: 8,
+                  border: "1px solid rgba(0,0,0,0.2)",
+                  background: "transparent",
+                  cursor: "pointer",
+                  fontSize: 15,
+                  flexShrink: 0,
+                }}
+              >
+                🎲
+              </button>
               {/* 봇 함정 필드 — 사람에겐 안 보임 */}
               <input
                 type="text"
