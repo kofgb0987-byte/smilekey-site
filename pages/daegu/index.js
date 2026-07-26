@@ -100,19 +100,36 @@ export default function DaeguList({ items, viewMap = {}, likeMap = {}, popular =
                 >
                   <Link
                     href={`/daegu/${encodeURIComponent(it.id)}`}
-                    style={{ textDecoration: "none", color: "inherit" }}
+                    style={{ textDecoration: "none", color: "inherit", display: "flex", gap: 12 }}
                   >
-                    <div style={{ fontWeight: 700, fontSize: 16 }}>{it.title}</div>
-                    {it.hook ? (
-                      <div style={{ marginTop: 4, fontSize: 14, opacity: 0.85 }}>{it.hook}</div>
+                    {it.thumbnail ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={it.thumbnail}
+                        alt=""
+                        loading="lazy"
+                        style={{
+                          width: 64,
+                          height: 64,
+                          objectFit: "cover",
+                          borderRadius: 8,
+                          flexShrink: 0,
+                        }}
+                      />
                     ) : null}
-                    <div style={{ marginTop: 6, fontSize: 12, opacity: 0.6 }}>
-                      {it.date}
-                      {viewMap[it.id] ? ` · 조회 ${viewMap[it.id]}` : ""}
-                      {likeMap[it.id] ? ` · ♥ ${likeMap[it.id]}` : ""}
-                      {Array.isArray(it.tags) && it.tags.length
-                        ? ` · ${it.tags.slice(0, 4).map((t) => `#${t}`).join(" ")}`
-                        : ""}
+                    <div style={{ minWidth: 0 }}>
+                      <div style={{ fontWeight: 700, fontSize: 16 }}>{it.title}</div>
+                      {it.hook ? (
+                        <div style={{ marginTop: 4, fontSize: 14, opacity: 0.85 }}>{it.hook}</div>
+                      ) : null}
+                      <div style={{ marginTop: 6, fontSize: 12, opacity: 0.6 }}>
+                        {it.date}
+                        {viewMap[it.id] ? ` · 조회 ${viewMap[it.id]}` : ""}
+                        {likeMap[it.id] ? ` · ♥ ${likeMap[it.id]}` : ""}
+                        {Array.isArray(it.tags) && it.tags.length
+                          ? ` · ${it.tags.slice(0, 4).map((t) => `#${t}`).join(" ")}`
+                          : ""}
+                      </div>
                     </div>
                   </Link>
                 </li>

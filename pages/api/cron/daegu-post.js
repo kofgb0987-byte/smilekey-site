@@ -78,9 +78,13 @@ export default async function handler(req, res) {
     const id = crypto.createHash("sha1").update(`daegu:${idSeed}`).digest("hex");
 
     const usedSet = new Set(post.used_links);
-    const sources = fresh
-      .filter((c) => usedSet.has(c.link))
-      .map((c) => ({ title: c.title, link: c.link, type: c.type }));
+    const usedCands = fresh.filter((c) => usedSet.has(c.link));
+    const sources = usedCands.map((c) => ({ title: c.title, link: c.link, type: c.type }));
+
+    // 근거 후보의 공식 이미지(시청 보도사진·TourAPI 포스터) — 프록시 경유, 최대 3장
+    const images = [...new Set(usedCands.map((c) => c.image).filter(Boolean))]
+      .slice(0, 3)
+      .map((u) => `/api/image-proxy?url=${encodeURIComponent(u)}`);
 
     const isNew = await saveDaeguPost({
       id,
@@ -90,6 +94,8 @@ export default async function handler(req, res) {
       sections: post.sections,
       tags: post.tags,
       sources,
+      images,
+      thumbnail: images[0] || "",
       date: today,
       created_at: new Date().toISOString(),
       ai_model: "gpt-4o-mini",

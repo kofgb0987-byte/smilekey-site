@@ -159,6 +159,12 @@ export default function DaeguDetail({ item }) {
   const sections = Array.isArray(item.sections) ? item.sections : [];
   const tags = Array.isArray(item.tags) ? item.tags : [];
   const sources = Array.isArray(item.sources) ? item.sources : [];
+  const images = Array.isArray(item.images) ? item.images : [];
+  const ogImage = item.thumbnail
+    ? item.thumbnail.startsWith("http")
+      ? item.thumbnail
+      : `${SITE_URL}${item.thumbnail}`
+    : null;
 
   return (
     <>
@@ -171,6 +177,7 @@ export default function DaeguDetail({ item }) {
         <meta property="og:description" content={desc} />
         <meta property="og:url" content={canonical} />
         <meta property="og:type" content="article" />
+        {ogImage && <meta property="og:image" content={ogImage} />}
       </Head>
 
       <main className="container">
@@ -193,6 +200,22 @@ export default function DaeguDetail({ item }) {
           {item.hook ? (
             <p style={{ fontSize: 15, fontWeight: 500, opacity: 0.9 }}>{item.hook}</p>
           ) : null}
+
+          {images.map((src, i) => (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              key={i}
+              src={src}
+              alt={`${item.title} 관련 이미지 ${i + 1}`}
+              loading="lazy"
+              style={{
+                display: "block",
+                maxWidth: "100%",
+                borderRadius: 10,
+                marginTop: i === 0 ? 12 : 10,
+              }}
+            />
+          ))}
 
           {sections.map((s, i) => (
             <section key={i} style={{ marginTop: 18 }}>
