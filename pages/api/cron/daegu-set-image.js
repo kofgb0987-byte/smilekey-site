@@ -40,5 +40,13 @@ export default async function handler(req, res) {
   const images = urls.slice(0, 3).map((u) => `/api/image-proxy?url=${encodeURIComponent(u)}`);
   await saveDaeguPost({ id, images, thumbnail: images[0] || "" });
 
+  // 페이지 캐시 즉시 갱신 (실패해도 치명적이지 않음 — ISR 주기로 곧 반영됨)
+  try {
+    await res.revalidate(`/daegu/${id}`);
+    await res.revalidate("/daegu");
+  } catch (e) {
+    console.error("revalidate error:", e);
+  }
+
   return res.status(200).json({ ok: true, id, title: post.title, images: images.length });
 }

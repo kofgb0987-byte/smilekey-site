@@ -19,5 +19,12 @@ export default async function handler(req, res) {
   }
 
   await deleteDaeguPost(id);
+
+  try {
+    await res.revalidate("/daegu");
+  } catch (e) {
+    console.error("revalidate error:", e);
+  }
+
   return res.status(200).json({ ok: true, deleted: id, title: existing.title });
 }

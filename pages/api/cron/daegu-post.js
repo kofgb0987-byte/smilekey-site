@@ -104,6 +104,13 @@ export default async function handler(req, res) {
     // 5) 사용 링크 기록 (같은 소재 재사용 방지)
     await markDaeguSeen(post.used_links);
 
+    // 목록 페이지 캐시 즉시 갱신 — 새 글이 발행 직후 보이도록
+    try {
+      await res.revalidate("/daegu");
+    } catch (e) {
+      console.error("revalidate error:", e);
+    }
+
     return res.status(200).json({
       ok: true,
       id,
