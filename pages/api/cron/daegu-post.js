@@ -47,18 +47,28 @@ function titleCompact(title) {
   return String(title).replace(/[^0-9A-Za-z가-힣]/g, "");
 }
 
+function sameTopic(a, b) {
+  const mine = distinctiveTokens(a);
+  const theirs = distinctiveTokens(b);
+  const aCompact = titleCompact(a);
+  const bCompact = titleCompact(b);
+  let shared = 0;
+  for (const t of mine) if (bCompact.includes(t)) shared++;
+  for (const t of theirs) if (!mine.has(t) && aCompact.includes(t)) shared++;
+  return shared >= 2;
+}
+
 function findDupTitle(title, recentTitles) {
-  const mine = distinctiveTokens(title);
-  const mineCompact = titleCompact(title);
   for (const prev of recentTitles) {
-    const theirs = distinctiveTokens(prev);
-    const prevCompact = titleCompact(prev);
-    let shared = 0;
-    for (const t of mine) if (prevCompact.includes(t)) shared++;
-    for (const t of theirs) if (!mine.has(t) && mineCompact.includes(t)) shared++;
-    if (shared >= 2) return prev;
+    if (sameTopic(title, prev)) return prev;
   }
   return null;
+}
+
+// 차단된 주제(중복·종료 행사)의 남은 후보 링크 전부 — 통째로 seen 처리해서
+// 같은 주제가 링크만 바꿔 다음 회차(특히 하루 1회뿐인 크론)를 잡아먹는 것을 막는다
+function topicLinks(refTitle, cands) {
+  return cands.filter((c) => sameTopic(refTitle, c.title)).map((c) => c.link);
 }
 
 export default async function handler(req, res) {
@@ -105,7 +115,7 @@ export default async function handler(req, res) {
     // 3-0) 주제 중복 백스톱 — 최근 글과 제목 핵심 키워드가 겹치면 발행 안 함
     const dupOf = findDupTitle(post.title, recentTitles);
     if (dupOf) {
-      await markDaeguSeen(post.used_links); // 같은 소재로 재시도하는 루프 방지
+      await markDaeguSeen([...new Set([...post.used_links, ...topicLinks(post.title, fresh)])]);
       return res.status(200).json({
         ok: true,
         skipped: "동일 주제 중복",
@@ -125,10 +135,14 @@ export default async function handler(req, res) {
       return res.status(200).json({ ok: true, skipped: "근거 부족(기사 2개 미만)", title: post.title });
     }
 
-    // 3-2) 발행 전 팩트체크 — 거부되면 발행 안 함
+    // 3-2) 발행 전 팩트체크 — 거부되면 발행 안 함.
+    //      종료 행사로 판정되면 주제 자체가 죽은 것이므로 관련 후보를 통째로 소진
     const review = await aiReviewDaeguPost({ post, candidates: fresh, today });
     if (!review.approved) {
-      await markDaeguSeen(post.used_links); // 같은 문제 주제 반복 방지
+      const burn = review.ended
+        ? [...new Set([...post.used_links, ...topicLinks(post.title, fresh)])]
+        : post.used_links;
+      await markDaeguSeen(burn); // 같은 문제 주제 반복 방지
       return res.status(200).json({
         ok: true,
         skipped: "검수 거부",
