@@ -6,13 +6,48 @@
 import crypto from "crypto";
 import { collectAllCandidates } from "../../../lib/collect";
 import { aiWriteDaeguPost, aiReviewDaeguPost } from "../../../lib/ai";
-import { saveDaeguPost, filterUnseenLinks, markDaeguSeen } from "../../../lib/redis";
+import {
+  saveDaeguPost,
+  filterUnseenLinks,
+  markDaeguSeen,
+  listDaeguIds,
+  getDaeguPost,
+} from "../../../lib/redis";
 
 // 예고 기사(행사 며칠 전 보도)가 최신순 정렬에서 잘리지 않도록 넉넉히
 const MAX_CANDIDATES_TO_AI = 40;
+// 주제 중복 비교 대상 최근 발행글 수
+const RECENT_TITLES_FOR_DEDUP = 10;
 
 function todayKst() {
   return new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
+}
+
+// 제목 유사도 백스톱 — 프롬프트 배제를 뚫고 같은 행사가 언론사만 바꿔 다시 뽑히는 경우 차단.
+// 흔한 단어를 제외한 변별 토큰이 2개 이상 겹치면 같은 주제로 본다.
+const COMMON_TOKENS = new Set([
+  "대구", "경북", "축제", "행사", "소식", "개최", "여름", "겨울", "봄", "가을",
+  "특별한", "다양한", "즐거움", "추억", "함께", "가득",
+]);
+
+function distinctiveTokens(title) {
+  return new Set(
+    String(title)
+      .replace(/[^0-9A-Za-z가-힣\s]/g, " ")
+      .split(/\s+/)
+      .filter((t) => t.length >= 2 && !/^\d+$/.test(t) && !COMMON_TOKENS.has(t))
+  );
+}
+
+function findDupTitle(title, recentTitles) {
+  const mine = distinctiveTokens(title);
+  for (const prev of recentTitles) {
+    const theirs = distinctiveTokens(prev);
+    let shared = 0;
+    for (const t of mine) if (theirs.has(t)) shared++;
+    if (shared >= 2) return prev;
+  }
+  return null;
 }
 
 export default async function handler(req, res) {
@@ -41,14 +76,31 @@ export default async function handler(req, res) {
       return res.status(200).json({ ok: true, skipped: "새 소재 없음(전부 사용됨)" });
     }
 
-    // 3) AI 작성
+    // 3) AI 작성 — 최근 발행글 제목을 넘겨 같은 행사/사건 재선택 방지
+    const recentIds = await listDaeguIds(RECENT_TITLES_FOR_DEDUP);
+    const recentTitles = (await Promise.all(recentIds.map((rid) => getDaeguPost(rid))))
+      .map((p) => p && p.title)
+      .filter(Boolean);
+
     const today = todayKst();
-    const post = await aiWriteDaeguPost({ candidates: fresh, today });
+    const post = await aiWriteDaeguPost({ candidates: fresh, today, recentTitles });
     if (!post) {
       return res.status(500).json({ ok: false, error: "AI 작성 실패" });
     }
     if (post.skip) {
       return res.status(200).json({ ok: true, skipped: `작성 스킵: ${post.reason}` });
+    }
+
+    // 3-0) 주제 중복 백스톱 — 최근 글과 제목 핵심 키워드가 겹치면 발행 안 함
+    const dupOf = findDupTitle(post.title, recentTitles);
+    if (dupOf) {
+      await markDaeguSeen(post.used_links); // 같은 소재로 재시도하는 루프 방지
+      return res.status(200).json({
+        ok: true,
+        skipped: "동일 주제 중복",
+        title: post.title,
+        existing: dupOf,
+      });
     }
 
     // 3-1) 다중 근거 강제 — 실제 후보에 존재하는 링크만 인정(AI가 링크를 지어내는 것 방지)
