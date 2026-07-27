@@ -66,9 +66,19 @@ function findDupTitle(title, recentTitles) {
 }
 
 // 차단된 주제(중복·종료 행사)의 남은 후보 링크 전부 — 통째로 seen 처리해서
-// 같은 주제가 링크만 바꿔 다음 회차(특히 하루 1회뿐인 크론)를 잡아먹는 것을 막는다
-function topicLinks(refTitle, cands) {
-  return cands.filter((c) => sameTopic(refTitle, c.title)).map((c) => c.link);
+// 같은 주제가 링크만 바꿔 다음 회차(특히 하루 1회뿐인 크론)를 잡아먹는 것을 막는다.
+// 기준 제목은 AI 글제목+실제 근거 기사제목 — 기사끼리가 토큰이 더 많이 겹쳐 매칭이 잘 된다.
+function topicLinks(refTitles, cands) {
+  return cands
+    .filter((c) => refTitles.some((t) => sameTopic(t, c.title)))
+    .map((c) => c.link);
+}
+
+function burnSet(post, fresh) {
+  const usedTitles = fresh
+    .filter((c) => post.used_links.includes(c.link))
+    .map((c) => c.title);
+  return [...new Set([...post.used_links, ...topicLinks([post.title, ...usedTitles], fresh)])];
 }
 
 export default async function handler(req, res) {
@@ -115,7 +125,7 @@ export default async function handler(req, res) {
     // 3-0) 주제 중복 백스톱 — 최근 글과 제목 핵심 키워드가 겹치면 발행 안 함
     const dupOf = findDupTitle(post.title, recentTitles);
     if (dupOf) {
-      await markDaeguSeen([...new Set([...post.used_links, ...topicLinks(post.title, fresh)])]);
+      await markDaeguSeen(burnSet(post, fresh));
       return res.status(200).json({
         ok: true,
         skipped: "동일 주제 중복",
@@ -139,9 +149,7 @@ export default async function handler(req, res) {
     //      종료 행사로 판정되면 주제 자체가 죽은 것이므로 관련 후보를 통째로 소진
     const review = await aiReviewDaeguPost({ post, candidates: fresh, today });
     if (!review.approved) {
-      const burn = review.ended
-        ? [...new Set([...post.used_links, ...topicLinks(post.title, fresh)])]
-        : post.used_links;
+      const burn = review.ended ? burnSet(post, fresh) : post.used_links;
       await markDaeguSeen(burn); // 같은 문제 주제 반복 방지
       return res.status(200).json({
         ok: true,
