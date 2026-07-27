@@ -45,7 +45,7 @@ export default function DaeguList({ items, viewMap = {}, likeMap = {}, popular =
         <title>대구 소식 | 대구 중앙열쇠</title>
         <meta
           name="description"
-          content="대구·동구·경상권 축제, 행사, 핫플레이스 소식을 하루 두 번 전합니다."
+          content="대구·동구·경상권 축제, 행사, 지역 이슈, 핫플레이스 소식을 하루 두 번 전합니다."
         />
         {!INDEXABLE && <meta name="robots" content="noindex,follow" />}
         <link rel="canonical" href={`${SITE_URL}/daegu`} />
@@ -57,7 +57,7 @@ export default function DaeguList({ items, viewMap = {}, likeMap = {}, popular =
       <main className="container">
         <header className="header">
           <h1 className="header-title">대구 소식</h1>
-          <p className="header-sub">축제·행사·핫플 — 대구의 재미있는 이야기</p>
+          <p className="header-sub">축제·행사·지역 이슈·핫플 — 대구의 지금 이야기</p>
         </header>
 
         <div style={{ marginBottom: 12, display: "flex", gap: 14 }}>
