@@ -24,27 +24,38 @@ function todayKst() {
 }
 
 // 제목 유사도 백스톱 — 프롬프트 배제를 뚫고 같은 행사가 언론사만 바꿔 다시 뽑히는 경우 차단.
-// 흔한 단어를 제외한 변별 토큰이 2개 이상 겹치면 같은 주제로 본다.
-const COMMON_TOKENS = new Set([
+// 띄어쓰기가 달라도("봉화 은어축제" vs "봉화은어축제") 잡히도록 공백 제거 문자열에 대한
+// 부분문자열 매칭을 쓰고, 변별 토큰이 2개 이상 겹치면 같은 주제로 본다.
+const COMMON_WORDS = [
   "대구", "경북", "축제", "행사", "소식", "개최", "여름", "겨울", "봄", "가을",
-  "특별한", "다양한", "즐거움", "추억", "함께", "가득",
-]);
+  "특별", "다양", "즐거움", "추억", "함께", "가득",
+];
 
 function distinctiveTokens(title) {
   return new Set(
     String(title)
       .replace(/[^0-9A-Za-z가-힣\s]/g, " ")
       .split(/\s+/)
-      .filter((t) => t.length >= 2 && !/^\d+$/.test(t) && !COMMON_TOKENS.has(t))
+      .filter(
+        (t) =>
+          t.length >= 2 && !/^\d+$/.test(t) && !COMMON_WORDS.some((c) => t.startsWith(c))
+      )
   );
+}
+
+function titleCompact(title) {
+  return String(title).replace(/[^0-9A-Za-z가-힣]/g, "");
 }
 
 function findDupTitle(title, recentTitles) {
   const mine = distinctiveTokens(title);
+  const mineCompact = titleCompact(title);
   for (const prev of recentTitles) {
     const theirs = distinctiveTokens(prev);
+    const prevCompact = titleCompact(prev);
     let shared = 0;
-    for (const t of mine) if (theirs.has(t)) shared++;
+    for (const t of mine) if (prevCompact.includes(t)) shared++;
+    for (const t of theirs) if (!mine.has(t) && mineCompact.includes(t)) shared++;
     if (shared >= 2) return prev;
   }
   return null;
