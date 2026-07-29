@@ -1,5 +1,5 @@
 // pages/sitemap.xml.js
-import { listSummaryIds, getSummary } from "../lib/redis";
+import { listSummaryIds, getSummary, listDaeguIds, getDaeguPost } from "../lib/redis";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://smilekey.me";
 
@@ -32,9 +32,25 @@ export async function getServerSideProps({ res }) {
     })
   );
 
+  // 대구 소식 글
+  const daeguIds = await listDaeguIds(200);
+  const daeguItems = await Promise.all(
+    daeguIds.map(async (id) => {
+      try {
+        const it = await getDaeguPost(id);
+        const rawDate = (it?.date || "").trim().slice(0, 10);
+        const date = rawDate && !isNaN(new Date(rawDate)) ? rawDate : today;
+        return { id, date };
+      } catch {
+        return { id, date: today };
+      }
+    })
+  );
+
   const staticPages = [
     urlEntry({ loc: SITE_URL, lastmod: today, changefreq: "weekly", priority: "1.0" }),
     urlEntry({ loc: `${SITE_URL}/archive`, lastmod: today, changefreq: "daily", priority: "0.8" }),
+    urlEntry({ loc: `${SITE_URL}/daegu`, lastmod: today, changefreq: "daily", priority: "0.8" }),
     urlEntry({ loc: `${SITE_URL}/services/car-key`, lastmod: today, changefreq: "monthly", priority: "0.9" }),
     urlEntry({ loc: `${SITE_URL}/services/smart-key`, lastmod: today, changefreq: "monthly", priority: "0.9" }),
     urlEntry({ loc: `${SITE_URL}/services/door-lock`, lastmod: today, changefreq: "monthly", priority: "0.9" }),
@@ -49,10 +65,20 @@ export async function getServerSideProps({ res }) {
     })
   );
 
+  const daeguPages = daeguItems.map(({ id, date }) =>
+    urlEntry({
+      loc: `${SITE_URL}/daegu/${encodeURIComponent(id)}`,
+      lastmod: date,
+      changefreq: "monthly",
+      priority: "0.6",
+    })
+  );
+
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${staticPages.join("")}
 ${archivePages.join("")}
+${daeguPages.join("")}
 </urlset>`;
 
   res.setHeader("Content-Type", "text/xml");

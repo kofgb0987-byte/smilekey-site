@@ -23,7 +23,7 @@ function randomNick() {
   return `${pick(NICK_ADJ)} ${pick(NICK_NOUN)}`.slice(0, 20);
 }
 // 🔒 품질 검증 기간 동안 noindex 유지 (index.js와 함께 전환)
-const INDEXABLE = false;
+const INDEXABLE = true;
 
 export async function getStaticPaths() {
   try {

@@ -11,7 +11,7 @@ import {
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://smilekey.me";
 // 🔒 품질 검증 기간 동안 noindex 유지. 콘텐츠 품질 확인 후 true로 바꾸고 sitemap에도 추가할 것.
-const INDEXABLE = false;
+const INDEXABLE = true;
 
 export async function getStaticProps() {
   const ids = await listDaeguIds(50);
