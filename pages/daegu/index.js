@@ -6,7 +6,7 @@ import {
   getDaeguPost,
   getDaeguViewMap,
   getDaeguLikeMap,
-  topDaeguViewIds,
+  topDaeguViewIdsWeekly,
 } from "../../lib/redis";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://smilekey.me";
@@ -24,11 +24,11 @@ export async function getStaticProps() {
   );
   const items = itemsRaw.filter(Boolean);
 
-  // 조회수/좋아요 + 인기글(조회 상위 3, 조회 0 제외)
+  // 조회수/좋아요 + 인기글(최근 7일 조회 상위 3, 조회 0 제외)
   const viewMap = await getDaeguViewMap(items.map((it) => it.id));
   const likeMap = await getDaeguLikeMap(items.map((it) => it.id));
   const byId = new Map(items.map((it) => [it.id, it]));
-  const popular = (await topDaeguViewIds(3))
+  const popular = (await topDaeguViewIdsWeekly(3))
     .filter(({ id }) => byId.has(id))
     .map(({ id, views }) => ({ id, views, title: byId.get(id).title }));
 
@@ -71,7 +71,7 @@ export default function DaeguList({ items, viewMap = {}, likeMap = {}, popular =
 
         {popular.length > 0 && (
           <section className="card" style={{ marginBottom: 14 }}>
-            <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 8 }}>🔥 인기글</div>
+            <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 8 }}>🔥 주간 인기글</div>
             <ol style={{ margin: 0, paddingLeft: 22 }}>
               {popular.map((p) => (
                 <li key={p.id} style={{ marginBottom: 6 }}>
