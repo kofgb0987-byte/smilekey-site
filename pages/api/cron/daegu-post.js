@@ -7,6 +7,7 @@ import crypto from "crypto";
 import { collectAllCandidates } from "../../../lib/collect";
 import { aiWriteDaeguPost, aiReviewDaeguPost } from "../../../lib/ai";
 import { fetchOgImage } from "../../../lib/og";
+import { searchNaver } from "../../../lib/naver";
 import {
   saveDaeguPost,
   filterUnseenLinks,
@@ -202,6 +203,23 @@ export default async function handler(req, res) {
             [post.title, ...usedTitles].some((t) => sameTopic(t, c.title))
         ),
       ].filter((c) => c.link && !c.link.includes("news.google.com"));
+
+      // 3차 폴백: 후보 풀에 직접 링크가 없으면 글 제목 핵심 키워드로 네이버 뉴스를
+      // 즉석 검색해 원문(originallink)을 확보 (네이버 env 없으면 조용히 스킵)
+      if (!directCands.length) {
+        try {
+          const q = [...distinctiveTokens(post.title)].slice(0, 3).join(" ");
+          if (q) {
+            const found = await searchNaver("news", q, { display: 5, sort: "sim" });
+            for (const it of found) {
+              const l = (it.originallink || it.link || "").trim();
+              if (l && !l.includes("news.google.com")) directCands.push({ link: l });
+            }
+          }
+        } catch (e) {
+          console.error("image fallback naver search error:", e.message);
+        }
+      }
 
       for (const c of directCands.slice(0, 5)) {
         const og = await fetchOgImage(c.link);
