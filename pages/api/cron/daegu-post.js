@@ -189,11 +189,21 @@ export default async function handler(req, res) {
       .slice(0, 3)
       .map((u) => `/api/image-proxy?url=${encodeURIComponent(u)}`);
 
-    // 공식 이미지가 없으면 근거 기사 원문의 og:image를 시도 (네이버 originallink 등 직접 URL만 —
-    // Google뉴스 링크는 서버 리졸브 불가). 언론사 도메인은 화이트리스트 밖이므로 HMAC 서명으로 중계 허용.
+    // 공식 이미지가 없으면 기사 원문의 og:image를 시도. Google뉴스 링크는 서버 리졸브 불가라
+    // 근거가 구글 링크뿐이면 후보군에서 같은 주제의 직접 링크(네이버 originallink 등)를 찾아 시도.
+    // 언론사 도메인은 화이트리스트 밖이므로 HMAC 서명으로 중계 허용.
     if (!images.length) {
-      for (const c of usedCands) {
-        if (!c.link || c.link.includes("news.google.com")) continue;
+      const usedTitles = usedCands.map((c) => c.title);
+      const directCands = [
+        ...usedCands,
+        ...all.filter(
+          (c) =>
+            !usedSet.has(c.link) &&
+            [post.title, ...usedTitles].some((t) => sameTopic(t, c.title))
+        ),
+      ].filter((c) => c.link && !c.link.includes("news.google.com"));
+
+      for (const c of directCands.slice(0, 5)) {
         const og = await fetchOgImage(c.link);
         if (og) {
           const sig = crypto
