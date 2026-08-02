@@ -103,6 +103,12 @@ export default async function handler(req, res) {
     if (!all.length) {
       return res.status(200).json({ ok: true, skipped: "후보 없음(수집 0건)" });
     }
+    // 소스별 수집 현황 — 네이버 env 미적용 등 수집 이상을 로그에서 바로 보이게
+    const sourceMix = {
+      gnews: all.filter((c) => (c.link || "").includes("news.google.com")).length,
+      naver: all.filter((c) => !(c.link || "").includes("news.google.com") && c.type !== "official").length,
+      official: all.filter((c) => c.type === "official").length,
+    };
 
     // 2~3) 소재 선정→작성→검수. 선택된 주제가 차단(중복·근거부족·검수거부)되면
     //      해당 소재를 소진(seen)하고 남은 후보로 재시도 — 첫 선택이 막혔다고
@@ -232,6 +238,7 @@ export default async function handler(req, res) {
       isNew,
       title: post.title,
       candidates: all.length,
+      sourceMix,
       fresh: fresh.length,
       used: post.used_links.length,
       ...(skips.length ? { retried: skips } : {}),
