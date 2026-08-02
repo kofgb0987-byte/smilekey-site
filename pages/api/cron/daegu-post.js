@@ -135,7 +135,9 @@ export default async function handler(req, res) {
 
       const draft = await aiWriteDaeguPost({ candidates: fresh, today, recentTitles });
       if (!draft) {
-        return res.status(500).json({ ok: false, error: "AI 작성 실패", attempts: skips });
+        // 일시 오류(파싱 실패·레이트리밋 등)일 수 있음 — 회차를 죽이지 않고 재시도
+        skips.push("AI 작성 실패(일시 오류)");
+        continue;
       }
       if (draft.skip) {
         return res.status(200).json({ ok: true, skipped: `작성 스킵: ${draft.reason}`, attempts: skips });
@@ -156,7 +158,10 @@ export default async function handler(req, res) {
       const officialLinks = new Set(fresh.filter((c) => c.type === "official").map((c) => c.link));
       const hasOfficial = draft.used_links.some((l) => officialLinks.has(l));
       if (draft.used_links.length < 2 && !hasOfficial) {
-        await markDaeguSeen(draft.used_links); // 같은 단일근거 주제 반복 방지
+        // 링크가 전부 날조라 소진할 게 없으면 제목 매칭으로 주제째 소진 — 무한 재선택 방지
+        await markDaeguSeen(
+          draft.used_links.length ? draft.used_links : burnSet(draft, fresh)
+        );
         skips.push(`근거 부족(기사 2개 미만): ${draft.title}`);
         continue;
       }
