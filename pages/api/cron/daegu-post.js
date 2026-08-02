@@ -6,6 +6,7 @@
 import crypto from "crypto";
 import { collectAllCandidates } from "../../../lib/collect";
 import { aiWriteDaeguPost, aiReviewDaeguPost } from "../../../lib/ai";
+import { fetchOgImage } from "../../../lib/og";
 import {
   saveDaeguPost,
   filterUnseenLinks,
@@ -178,9 +179,27 @@ export default async function handler(req, res) {
     const sources = usedCands.map((c) => ({ title: c.title, link: c.link, type: c.type }));
 
     // 근거 후보의 공식 이미지(시청 보도사진·TourAPI 포스터) — 프록시 경유, 최대 3장
-    const images = [...new Set(usedCands.map((c) => c.image).filter(Boolean))]
+    let images = [...new Set(usedCands.map((c) => c.image).filter(Boolean))]
       .slice(0, 3)
       .map((u) => `/api/image-proxy?url=${encodeURIComponent(u)}`);
+
+    // 공식 이미지가 없으면 근거 기사 원문의 og:image를 시도 (네이버 originallink 등 직접 URL만 —
+    // Google뉴스 링크는 서버 리졸브 불가). 언론사 도메인은 화이트리스트 밖이므로 HMAC 서명으로 중계 허용.
+    if (!images.length) {
+      for (const c of usedCands) {
+        if (!c.link || c.link.includes("news.google.com")) continue;
+        const og = await fetchOgImage(c.link);
+        if (og) {
+          const sig = crypto
+            .createHmac("sha256", process.env.CRON_SECRET)
+            .update(og)
+            .digest("hex")
+            .slice(0, 32);
+          images = [`/api/image-proxy?url=${encodeURIComponent(og)}&sig=${sig}`];
+          break;
+        }
+      }
+    }
 
     const isNew = await saveDaeguPost({
       id,
