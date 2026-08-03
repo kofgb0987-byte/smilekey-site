@@ -6,6 +6,7 @@ import {
   getDaeguPost,
   getDaeguViewMap,
   getDaeguLikeMap,
+  getDaeguCommentCountMap,
   topDaeguViewIdsWeekly,
 } from "../../lib/redis";
 
@@ -27,18 +28,19 @@ export async function getStaticProps() {
   // 조회수/좋아요 + 인기글(최근 7일 조회 상위 3, 조회 0 제외)
   const viewMap = await getDaeguViewMap(items.map((it) => it.id));
   const likeMap = await getDaeguLikeMap(items.map((it) => it.id));
+  const commentMap = await getDaeguCommentCountMap(items.map((it) => it.id));
   const byId = new Map(items.map((it) => [it.id, it]));
   const popular = (await topDaeguViewIdsWeekly(3))
     .filter(({ id }) => byId.has(id))
     .map(({ id, views }) => ({ id, views, title: byId.get(id).title }));
 
   return {
-    props: { items, viewMap, likeMap, popular },
+    props: { items, viewMap, likeMap, commentMap, popular },
     revalidate: 600,
   };
 }
 
-export default function DaeguList({ items, viewMap = {}, likeMap = {}, popular = [] }) {
+export default function DaeguList({ items, viewMap = {}, likeMap = {}, commentMap = {}, popular = [] }) {
   return (
     <>
       <Head>
@@ -126,6 +128,7 @@ export default function DaeguList({ items, viewMap = {}, likeMap = {}, popular =
                         {it.date}
                         {viewMap[it.id] ? ` · 조회 ${viewMap[it.id]}` : ""}
                         {likeMap[it.id] ? ` · ♥ ${likeMap[it.id]}` : ""}
+                        {commentMap[it.id] ? ` · 💬 ${commentMap[it.id]}` : ""}
                         {Array.isArray(it.tags) && it.tags.length
                           ? ` · ${it.tags.slice(0, 4).map((t) => `#${t}`).join(" ")}`
                           : ""}
