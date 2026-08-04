@@ -99,8 +99,11 @@ export default async function handler(req, res) {
   }
 
   try {
+    const t0 = Date.now();
+    const timings = {};
     // 1) 수집 — 4일: 축제 예고 기사가 행사 직전에 범위 밖으로 밀리지 않게
     const all = await collectAllCandidates({ days: 4 });
+    timings.collect = Date.now() - t0;
     if (!all.length) {
       return res.status(200).json({ ok: true, skipped: "후보 없음(수집 0건)" });
     }
@@ -226,8 +229,8 @@ export default async function handler(req, res) {
         }
       }
 
-      for (const c of directCands.slice(0, 5)) {
-        const og = await fetchOgImage(c.link);
+      for (const c of directCands.slice(0, 3)) {
+        const og = await fetchOgImage(c.link, { timeoutMs: 5000 });
         if (og) {
           const sig = crypto
             .createHmac("sha256", process.env.CRON_SECRET)
@@ -274,6 +277,7 @@ export default async function handler(req, res) {
       sourceMix,
       fresh: fresh.length,
       used: post.used_links.length,
+      timings: { ...timings, total: Date.now() - t0 },
       ...(skips.length ? { retried: skips } : {}),
     });
   } catch (e) {
