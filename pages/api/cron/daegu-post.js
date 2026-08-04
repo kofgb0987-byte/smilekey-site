@@ -142,9 +142,9 @@ export default async function handler(req, res) {
       }
 
       const draft = await aiWriteDaeguPost({ candidates: fresh, today, recentTitles });
-      if (!draft) {
+      if (!draft || draft.error) {
         // 일시 오류(파싱 실패·레이트리밋 등)일 수 있음 — 회차를 죽이지 않고 재시도
-        skips.push("AI 작성 실패(일시 오류)");
+        skips.push(`AI 작성 실패: ${draft?.error || "null 반환"}`);
         continue;
       }
       if (draft.skip) {
@@ -187,7 +187,12 @@ export default async function handler(req, res) {
     }
 
     if (!post) {
-      return res.status(200).json({ ok: true, skipped: `${MAX_ATTEMPTS}회 시도 모두 차단`, attempts: skips });
+      return res.status(200).json({
+        ok: true,
+        skipped: `${MAX_ATTEMPTS}회 시도 모두 차단`,
+        attempts: skips,
+        timings: { ...timings, total: Date.now() - t0 },
+      });
     }
 
     // 4) 저장 (id는 사용 소재 첫 링크 기준 — 같은 소재 재발행 방지)
