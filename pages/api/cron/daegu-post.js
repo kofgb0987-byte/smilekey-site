@@ -129,6 +129,11 @@ export default async function handler(req, res) {
     const skips = [];
 
     for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+      // 시간 예산 — maxDuration(300s)에 걸려 504로 죽는 대신 우아하게 종료
+      if (Date.now() - t0 > 200000) {
+        skips.push("시간 예산 초과로 중단");
+        break;
+      }
       // 매 시도마다 재계산 — 직전 시도에서 소진된 링크를 반영
       const unseenLinks = new Set(await filterUnseenLinks(all.map((c) => c.link)));
       fresh = all.filter((c) => unseenLinks.has(c.link)).slice(0, MAX_CANDIDATES_TO_AI);
