@@ -35,13 +35,10 @@ export async function getStaticPaths() {
 }
 
 export async function getStaticProps({ params }) {
-  try {
-    const item = await getDaeguPost(params.id);
-    if (!item || !item.title) return { notFound: true };
-    return { props: { item: { ...item, id: params.id } }, revalidate: 3600 };
-  } catch {
-    return { notFound: true };
-  }
+  // Redis 일시 장애는 throw로 기존 캐시 유지 — catch→notFound는 404 영구 박제(8/5 archive 실사고)
+  const item = await getDaeguPost(params.id);
+  if (!item || !item.title) return { notFound: true, revalidate: 60 };
+  return { props: { item: { ...item, id: params.id } }, revalidate: 3600 };
 }
 
 export default function DaeguDetail({ item }) {

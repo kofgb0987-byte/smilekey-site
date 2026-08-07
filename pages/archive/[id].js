@@ -20,16 +20,14 @@ export async function getStaticPaths() {
 
 export async function getStaticProps({ params }) {
   const { id } = params;
-  try {
-    const item = await getSummary(id);
-    if (!item) return { notFound: true };
-    return {
-      props: { item: { ...item, id } },
-      revalidate: 3600,
-    };
-  } catch {
-    return { notFound: true };
-  }
+  // ⚠️ Redis 일시 장애를 catch→notFound로 바꾸면 404가 무기한 캐시로 박제된다(8/5 실사고).
+  //    에러는 throw해서 기존 캐시 페이지를 유지하고, 진짜 없음만 404(60s 재검증).
+  const item = await getSummary(id);
+  if (!item || !item.title) return { notFound: true, revalidate: 60 };
+  return {
+    props: { item: { ...item, id } },
+    revalidate: 3600,
+  };
 }
 
 export default function ArchiveDetail({ item }) {
