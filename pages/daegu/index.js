@@ -40,6 +40,26 @@ export async function getStaticProps() {
   };
 }
 
+// 목록을 월 단위로 묶는다 — 리스트가 길어져도 시기별로 훑기 좋게
+function groupByMonth(items) {
+  const groups = [];
+  let cur = null;
+  for (const it of items) {
+    const ym = (it.date || "").slice(0, 7); // "2026-08"
+    if (!cur || cur.ym !== ym) {
+      cur = { ym, items: [] };
+      groups.push(cur);
+    }
+    cur.items.push(it);
+  }
+  return groups;
+}
+
+function monthLabel(ym) {
+  const [y, m] = ym.split("-");
+  return y && m ? `${y}년 ${parseInt(m, 10)}월` : "날짜 미상";
+}
+
 export default function DaeguList({ items, viewMap = {}, likeMap = {}, commentMap = {}, popular = [] }) {
   return (
     <>
@@ -94,8 +114,21 @@ export default function DaeguList({ items, viewMap = {}, likeMap = {}, commentMa
           {items.length === 0 ? (
             <p className="muted-text">아직 소식이 없습니다. 곧 첫 소식이 올라와요!</p>
           ) : (
-            <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
-              {items.map((it) => (
+            groupByMonth(items).map((group) => (
+            <div key={group.ym}>
+              <div
+                style={{
+                  fontWeight: 700,
+                  fontSize: 14,
+                  opacity: 0.65,
+                  padding: "16px 0 4px",
+                  borderBottom: "2px solid rgba(0,0,0,0.15)",
+                }}
+              >
+                📅 {monthLabel(group.ym)}
+              </div>
+              <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+              {group.items.map((it) => (
                 <li
                   key={it.id}
                   style={{ padding: "14px 0", borderBottom: "1px solid rgba(0,0,0,0.08)" }}
@@ -137,7 +170,9 @@ export default function DaeguList({ items, viewMap = {}, likeMap = {}, commentMa
                   </Link>
                 </li>
               ))}
-            </ul>
+              </ul>
+            </div>
+            ))
           )}
         </section>
       </main>
