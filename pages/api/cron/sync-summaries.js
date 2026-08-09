@@ -3,6 +3,7 @@ import crypto from "crypto";
 import { XMLParser } from "fast-xml-parser";
 import { saveSummary } from "../../../lib/redis";
 import { aiSummarize3 } from "../../../lib/ai";
+import { pingIndexNow } from "../../../lib/indexnow";
 
 async function fetchHtml(url) {
   const res = await fetch(url, {
@@ -138,6 +139,7 @@ export default async function handler(req, res) {
   const blogFeedUrl = "https://blog.rss.naver.com/yym0072.xml";
 
   let saved = 0;
+  const savedIds = [];
 
   try {
     // ---- 유튜브 ----
@@ -189,6 +191,7 @@ export default async function handler(req, res) {
         });
       }
       saved++;
+      savedIds.push(item.id);
     }
 
     // ---- 네이버 블로그 ----
@@ -259,9 +262,19 @@ export default async function handler(req, res) {
         });
       }
       saved++;
+      savedIds.push(item.id);
     }
 
-    return res.status(200).json({ ok: true, saved });
+    // 새 글이 있으면 검색엔진(네이버 등)에 즉시 통지
+    let indexnow = [];
+    if (savedIds.length) {
+      indexnow = await pingIndexNow([
+        ...savedIds.map((id) => `https://smilekey.me/archive/${id}`),
+        "https://smilekey.me/archive",
+      ]);
+    }
+
+    return res.status(200).json({ ok: true, saved, ...(indexnow.length ? { indexnow } : {}) });
   } catch (e) {
     console.error("cron sync error:", e);
     return res.status(500).json({ ok: false, error: String(e) });

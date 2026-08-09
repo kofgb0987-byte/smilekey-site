@@ -8,6 +8,7 @@ import { collectAllCandidates } from "../../../lib/collect";
 import { aiWriteDaeguPost, aiReviewDaeguPost } from "../../../lib/ai";
 import { fetchOgImage } from "../../../lib/og";
 import { searchNaver } from "../../../lib/naver";
+import { pingIndexNow } from "../../../lib/indexnow";
 import {
   saveDaeguPost,
   filterUnseenLinks,
@@ -278,6 +279,12 @@ export default async function handler(req, res) {
       console.error("revalidate error:", e);
     }
 
+    // 검색엔진(네이버 등)에 새 글 즉시 통지 — 수동 수집요청 대체
+    const indexnow = await pingIndexNow([
+      `https://smilekey.me/daegu/${id}`,
+      "https://smilekey.me/daegu",
+    ]);
+
     return res.status(200).json({
       ok: true,
       id,
@@ -287,6 +294,7 @@ export default async function handler(req, res) {
       sourceMix,
       fresh: fresh.length,
       used: post.used_links.length,
+      indexnow,
       timings: { ...timings, total: Date.now() - t0 },
       ...(skips.length ? { retried: skips } : {}),
     });
