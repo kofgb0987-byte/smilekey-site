@@ -492,3 +492,39 @@ a {
   line-height: 1.6;
   padding-left: 2px;
 }
+
+/* ===== 전 페이지 공통 내비게이션 (SiteNav) ===== */
+.site-nav {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none; /* 모바일 가로 스크롤 시 스크롤바 숨김 */
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid #e5e7eb;
+  padding: 8px 12px;
+}
+
+.site-nav::-webkit-scrollbar {
+  display: none;
+}
+
+.site-nav-link {
+  flex: 0 0 auto;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #4b5563;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.site-nav-link--active {
+  background: #eff6ff;
+  color: #1e40af;
+}

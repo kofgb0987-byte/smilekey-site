@@ -4,6 +4,7 @@ import { Analytics } from "@vercel/analytics/react";
 import Head from "next/head";
 import Script from "next/script";
 import { useEffect } from "react";
+import SiteNav from "../components/SiteNav";
 
 // NEXT_PUBLIC_*는 빌드 시점에 인라인됨 — env 변경 시 이 파일이 재컴파일돼야 반영된다
 const GA_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
@@ -50,6 +51,7 @@ export default function MyApp({ Component, pageProps }) {
           </Script>
         </>
       )}
+      <SiteNav />
       <Component {...pageProps} />
       <Analytics />
     </>

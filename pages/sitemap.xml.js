@@ -1,5 +1,5 @@
 // pages/sitemap.xml.js
-import { listSummaryIds, getSummary, listDaeguIds, getDaeguPost } from "../lib/redis";
+import { listAllSummaryIds, getSummary, listAllDaeguIds, getDaeguPost } from "../lib/redis";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://smilekey.me";
 
@@ -16,36 +16,47 @@ function urlEntry({ loc, lastmod, changefreq, priority }) {
 export async function getServerSideProps({ res }) {
   const today = new Date().toISOString().slice(0, 10);
 
-  const ids = await listSummaryIds(200);
+  // 목록 list가 아니라 중복방지 set 기준 — list는 ltrim으로 잘려서 옛 글이 사이트맵에서 누락됐었음
+  const ids = await listAllSummaryIds();
 
-  // 각 아이템 날짜 (없으면 today)
-  const items = await Promise.all(
-    ids.map(async (id) => {
-      try {
-        const it = await getSummary(id);
-        const rawDate = (it?.date || "").trim().slice(0, 10);
-        const date = rawDate && !isNaN(new Date(rawDate)) ? rawDate : today;
-        return { id, date };
-      } catch {
-        return { id, date: today };
-      }
-    })
-  );
+  // 각 아이템 날짜 (없으면 today), 상세 해시가 삭제된 글은 제외
+  const items = (
+    await Promise.all(
+      ids.map(async (id) => {
+        try {
+          const it = await getSummary(id);
+          if (!it || !Object.keys(it).length) return null;
+          const rawDate = (it.date || "").trim().slice(0, 10);
+          const date = rawDate && !isNaN(new Date(rawDate)) ? rawDate : today;
+          return { id, date };
+        } catch {
+          return { id, date: today };
+        }
+      })
+    )
+  )
+    .filter(Boolean)
+    .sort((a, b) => (a.date < b.date ? 1 : -1));
 
   // 대구 소식 글
-  const daeguIds = await listDaeguIds(200);
-  const daeguItems = await Promise.all(
-    daeguIds.map(async (id) => {
-      try {
-        const it = await getDaeguPost(id);
-        const rawDate = (it?.date || "").trim().slice(0, 10);
-        const date = rawDate && !isNaN(new Date(rawDate)) ? rawDate : today;
-        return { id, date };
-      } catch {
-        return { id, date: today };
-      }
-    })
-  );
+  const daeguIds = await listAllDaeguIds();
+  const daeguItems = (
+    await Promise.all(
+      daeguIds.map(async (id) => {
+        try {
+          const it = await getDaeguPost(id);
+          if (!it || !Object.keys(it).length) return null;
+          const rawDate = (it.date || "").trim().slice(0, 10);
+          const date = rawDate && !isNaN(new Date(rawDate)) ? rawDate : today;
+          return { id, date };
+        } catch {
+          return { id, date: today };
+        }
+      })
+    )
+  )
+    .filter(Boolean)
+    .sort((a, b) => (a.date < b.date ? 1 : -1));
 
   const staticPages = [
     urlEntry({ loc: SITE_URL, lastmod: today, changefreq: "weekly", priority: "1.0" }),
