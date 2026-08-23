@@ -21,7 +21,7 @@ const jsonLd = {
   },
   areaServed: "대구광역시",
   description:
-    "대구 도어락 설치·교체·비밀번호 초기화. 가정용·사무실·원룸·오피스텔. 대구 전 지역 현장 출장.",
+    "대구 도어락 설치·교체·수리·비밀번호 초기화. 현관문·방화문·유리문, 삼성·게이트맨·솔리티·코콤 전 브랜드. 대구 전 지역 현장 출장.",
 };
 
 const FAQ = [
@@ -30,8 +30,20 @@ const FAQ = [
     a: "현장 방문 후 비밀번호 초기화 또는 도어락 교체를 도와드립니다. 본인 확인이 필요하오니 신분증을 준비해 주세요.",
   },
   {
+    q: "문이 잠겨서 못 들어가는데 바로 와주시나요?",
+    a: "위치와 상황을 알려주시면 소요 시간을 바로 안내해 드리고, 당일 최대한 빠르게 방문합니다. 개방 후 필요하면 교체까지 한 번에 진행할 수 있습니다.",
+  },
+  {
     q: "어떤 종류의 도어락을 설치할 수 있나요?",
-    a: "번호키, 지문인식, 카드키, 스마트폰 연동 등 모든 타입의 도어락 설치·교체가 가능합니다. 설치 전 제품 추천도 해드립니다.",
+    a: "번호키, 지문인식, 카드키, 스마트폰 연동 등 모든 타입의 디지털 도어락 설치·교체가 가능합니다. 현관문·방화문·유리문 등 문 종류에 맞는 제품 추천도 해드립니다.",
+  },
+  {
+    q: "도어락을 직접 사놨는데 설치만 맡겨도 되나요?",
+    a: "네, 보유하신 제품 설치만도 가능합니다. 기존 도어락 철거를 포함해 진행하며, 문에 맞지 않는 제품일 경우 설치 전에 미리 알려드립니다.",
+  },
+  {
+    q: "비용은 어떻게 되나요?",
+    a: "제품 종류(번호키/지문/카드)와 문 종류(현관문/방화문/유리문)에 따라 달라집니다. 전화로 상황을 말씀해 주시면 대략적인 비용을 먼저 안내해 드립니다.",
   },
   {
     q: "원룸·오피스텔도 출장 가능한가요?",
@@ -53,10 +65,10 @@ export default function DoorLockPage() {
   return (
     <>
       <Head>
-        <title>대구 도어락 설치 · 교체 – 중앙열쇠 | 비밀번호 초기화 · 출장</title>
+        <title>대구 도어락 설치 · 교체 – 중앙열쇠 | 현관문 디지털도어락 당일 출장</title>
         <meta
           name="description"
-          content="대구 도어락 설치·교체·비밀번호 초기화. 가정·원룸·오피스텔·사무실. 대구 전 지역 당일 출장. 중앙열쇠 010-3503-6919"
+          content="대구 도어락 설치·교체·수리·비밀번호 초기화. 현관문·방화문·유리문 디지털도어락, 삼성·게이트맨·솔리티·코콤 전 브랜드. 대구 전 지역 당일 출장. 중앙열쇠 010-3503-6919"
         />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="canonical" href="https://smilekey.me/services/door-lock" />
@@ -85,10 +97,20 @@ export default function DoorLockPage() {
           <h2 style={{ fontSize: "1.1rem", fontWeight: 700, marginBottom: "0.75rem" }}>서비스 안내</h2>
           <ul style={{ lineHeight: 2, paddingLeft: "1.2rem" }}>
             <li><strong>도어락 신규 설치</strong> – 번호키·지문인식·카드키·스마트폰 연동</li>
-            <li><strong>도어락 교체</strong> – 노후화, 고장, 보안 업그레이드</li>
-            <li><strong>비밀번호 초기화</strong> – 번호 분실·잠금 해제</li>
-            <li><strong>도어락 수리</strong> – 버튼 불량, 배터리 오류, 잠금 불량</li>
+            <li><strong>도어락 교체</strong> – 노후화, 고장, 이사 후 보안 교체</li>
+            <li><strong>잠긴 문 개방 · 비밀번호 초기화</strong> – 번호 분실, 배터리 방전</li>
+            <li><strong>도어락 수리</strong> – 버튼 불량, 에러음, 잠금 불량</li>
+            <li><strong>현관문 · 방화문 · 유리문</strong> – 문 종류별 맞춤 시공</li>
           </ul>
+        </section>
+
+        <section className="card" style={{ marginTop: "1rem" }}>
+          <h2 style={{ fontSize: "1.1rem", fontWeight: 700, marginBottom: "0.75rem" }}>취급 브랜드</h2>
+          <p style={{ color: "#555", lineHeight: 1.7, margin: 0 }}>
+            삼성(SHP) · 게이트맨 · 솔리티 · 코콤 · 밀레시스텍 · 유니코 등{" "}
+            <strong>디지털 도어락 전 브랜드</strong> 설치·수리가 가능합니다. 제품을 정하지
+            못하셨다면 문 종류와 예산에 맞는 모델을 추천해 드립니다.
+          </p>
         </section>
 
         <section className="card" style={{ marginTop: "1rem" }}>
@@ -99,6 +121,21 @@ export default function DoorLockPage() {
               <p style={{ color: "#555", lineHeight: 1.7 }}>A. {a}</p>
             </div>
           ))}
+        </section>
+
+        <section className="card" style={{ marginTop: "1rem" }}>
+          <h2 style={{ fontSize: "1.1rem", fontWeight: 700, marginBottom: "0.75rem" }}>자동차 키가 필요하세요?</h2>
+          <p style={{ color: "#555", lineHeight: 1.7, margin: 0 }}>
+            중앙열쇠의 주력은 자동차 키입니다.{" "}
+            <Link href="/services/car-key" style={{ color: "#1e40af", fontWeight: 600 }}>
+              차키 분실 제작
+            </Link>
+            {" · "}
+            <Link href="/services/smart-key" style={{ color: "#1e40af", fontWeight: 600 }}>
+              벤츠·BMW 등 수입차 스마트키 복사·제작
+            </Link>
+            도 대구 전 지역 출장으로 도와드립니다.
+          </p>
         </section>
 
         <div style={{ textAlign: "center", marginTop: "1.5rem" }}>
