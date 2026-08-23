@@ -49,5 +49,6 @@ export default async function handler(req, res) {
     call = { ok: false, type, q, error: String(e.message || e).slice(0, 300) };
   }
 
-  return res.status(200).json({ env, call });
+  // 배포 확인용 마커 — 새 코드에만 있는 값으로 배포 성공을 판정한다(빌드 실패 배포를 구버전 응답이 가리는 사고 방지)
+  return res.status(200).json({ ver: "2026-08-24-dedupfix", env, call });
 }

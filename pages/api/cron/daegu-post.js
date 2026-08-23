@@ -22,8 +22,9 @@ export const config = { maxDuration: 300 };
 
 // 예고 기사(행사 며칠 전 보도)가 최신순 정렬에서 잘리지 않도록 넉넉히
 const MAX_CANDIDATES_TO_AI = 40;
-// 주제 중복 비교 대상 최근 발행글 수
-const RECENT_TITLES_FOR_DEDUP = 10;
+// 주제 중복 비교 대상 최근 발행글 수 — 2주+ 이어지는 행사(마스터즈육상 등)가 창 밖에서
+// 재등장하지 않게 넉넉히 (08-24 중복발행 사고)
+const RECENT_TITLES_FOR_DEDUP = 20;
 
 function todayKst() {
   return new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
@@ -38,19 +39,35 @@ const COMMON_WORDS = [
 ];
 
 function distinctiveTokens(title) {
-  return new Set(
-    String(title)
-      .replace(/[^0-9A-Za-z가-힣\s]/g, " ")
-      .split(/\s+/)
-      .filter(
-        (t) =>
-          t.length >= 2 && !/^\d+$/.test(t) && !COMMON_WORDS.some((c) => t.startsWith(c))
-      )
-  );
+  // 흔한 단어는 토큰을 통째로 버리지 말고 접두사만 벗긴다 — startsWith 필터가
+  // "대구퀴어문화축제" 같은 행사명 토큰 전체를 삭제해 중복발행을 못 잡던 사고(08-24) 수정.
+  // "대구여름축제"처럼 흔한 단어로만 이루어진 토큰은 벗기다 보면 자연 탈락한다.
+  const out = new Set();
+  for (let t of String(title).replace(/[^0-9A-Za-z가-힣\s]/g, " ").split(/\s+/)) {
+    let stripped = true;
+    while (stripped) {
+      stripped = false;
+      for (const c of COMMON_WORDS) {
+        if (t.startsWith(c) && t.length > c.length) {
+          t = t.slice(c.length);
+          stripped = true;
+        }
+      }
+    }
+    // 접두사를 벗기고 남은 조사류("에서" 등)가 오탐을 만들지 않게 3자 미만은 버림
+    if (t.length >= 3 && !/^\d+$/.test(t) && !COMMON_WORDS.includes(t)) out.add(t);
+  }
+  return out;
 }
 
 function titleCompact(title) {
   return String(title).replace(/[^0-9A-Za-z가-힣]/g, "");
+}
+
+function commonPrefixLen(a, b) {
+  let i = 0;
+  while (i < a.length && i < b.length && a[i] === b[i]) i++;
+  return i;
 }
 
 function sameTopic(a, b) {
@@ -61,7 +78,10 @@ function sameTopic(a, b) {
   let shared = 0;
   for (const t of mine) if (bCompact.includes(t)) shared++;
   for (const t of theirs) if (!mine.has(t) && aCompact.includes(t)) shared++;
-  return shared >= 2;
+  if (shared >= 2) return true;
+  // 행사명 표기 변형("육상대회"/"육상경기대회") 대응 — 6자+ 공통 접두 토큰쌍은 단독으로도 동일 주제
+  for (const t of mine) for (const u of theirs) if (commonPrefixLen(t, u) >= 6) return true;
+  return false;
 }
 
 function findDupTitle(title, recentTitles) {
