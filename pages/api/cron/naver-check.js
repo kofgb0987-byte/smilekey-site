@@ -25,9 +25,11 @@ export default async function handler(req, res) {
   // 지역검색은 sort=date를 안 받음(random|comment만)
   const sort = String(req.query.sort || (type === "local" ? "random" : "date"));
 
+  const auth = req.query.auth === "legacy" ? "legacy" : undefined;
+
   let call = null;
   try {
-    const items = await searchNaver(type, q, { display, sort });
+    const items = await searchNaver(type, q, { display, sort, auth });
     call = { ok: true, type, q, count: items.length, items };
   } catch (e) {
     call = { ok: false, type, q, error: String(e.message || e).slice(0, 300) };
