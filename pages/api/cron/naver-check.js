@@ -2,7 +2,7 @@
 // 호출: GET/POST /api/cron/naver-check, Authorization: Bearer {CRON_SECRET}
 //   ?type=news|blog|local&q=검색어&display=n — 지역검색(local)으로 플레이스 등록/노출 확인용
 // env 값 자체는 노출하지 않고 존재 여부/길이와 실호출 결과만 반환한다.
-import { searchNaver } from "../../../lib/naver";
+import { searchNaver, searchTrend } from "../../../lib/naver";
 
 export default async function handler(req, res) {
   const auth = req.headers.authorization || "";
@@ -29,8 +29,22 @@ export default async function handler(req, res) {
 
   let call = null;
   try {
-    const items = await searchNaver(type, q, { display, sort, auth });
-    call = { ok: true, type, q, count: items.length, items };
+    if (type === "trend") {
+      // ?type=trend&q=키워드1,키워드2 (최대 5개) — 최근 90일 주간 상대 트렌드
+      const endDate = new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 10); // KST 오늘
+      const startDate = new Date(Date.now() - 90 * 864e5).toISOString().slice(0, 10);
+      const keywordGroups = q
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean)
+        .slice(0, 5)
+        .map((k) => ({ groupName: k, keywords: [k] }));
+      const data = await searchTrend(keywordGroups, { startDate, endDate, auth });
+      call = { ok: true, type, q, results: data.results };
+    } else {
+      const items = await searchNaver(type, q, { display, sort, auth });
+      call = { ok: true, type, q, count: items.length, items };
+    }
   } catch (e) {
     call = { ok: false, type, q, error: String(e.message || e).slice(0, 300) };
   }
