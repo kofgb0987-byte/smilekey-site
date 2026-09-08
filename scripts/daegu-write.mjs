@@ -117,20 +117,19 @@ async function main() {
   const t0 = Date.now();
   log(`daegu-write 시작 model=${model} dry=${dry} base=${BASE_URL}`);
 
-  let reuse = "";
   const attempts = [];
 
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
-    // 1) 후보 — 첫 회차만 수집, 이후는 직전 수집분에서 소진된 것만 빼고 재사용
-    const cand = await api(`/api/cron/daegu-candidates${reuse ? `?reuse=${reuse}` : ""}`);
+    // 1) 후보 — 매 회차 새로 수집(4초). 직전 시도에서 소진된 링크는 서버가 빼서 준다.
+    const cand = await api("/api/cron/daegu-candidates");
     if (cand.empty) {
       log(`종료: ${cand.reason}`);
       return { ok: true, skipped: cand.reason, attempts };
     }
-    reuse = cand.batch;
+    const batch = cand.batch;
     log(
       `후보 attempt=${attempt} fresh=${cand.fresh}/${cand.totalCandidates} ` +
-        `mix=${JSON.stringify(cand.sourceMix)} reused=${cand.reused} ${cand.elapsed}ms`
+        `mix=${JSON.stringify(cand.sourceMix)} timings=${JSON.stringify(cand.timings)}`
     );
 
     // 2) 작성
@@ -182,7 +181,7 @@ async function main() {
 
     // 4) 검증·저장 — 차단되면 서버가 소재를 소진했으므로 같은 수집분으로 재시도
     const saved = await api("/api/cron/daegu-save", {
-      body: { batch: reuse, draft, reviewRaw, aiModel: AI_MODEL_TAG },
+      body: { batch, draft, reviewRaw, aiModel: AI_MODEL_TAG },
     });
     if (saved.published) {
       log(`발행 완료: ${saved.title} id=${saved.id} isNew=${saved.isNew} ${Date.now() - t0}ms`);
