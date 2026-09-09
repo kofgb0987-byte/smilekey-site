@@ -9,6 +9,7 @@ const MENU = [
   { href: "/services/car-key", label: "자동차키" },
   { href: "/services/smart-key", label: "스마트키" },
   { href: "/services/door-lock", label: "도어락" },
+  { href: "/guide", label: "안내 가이드" },
   { href: "/daegu", label: "대구 소식" },
   { href: "/archive", label: "작업 아카이브" },
 ];

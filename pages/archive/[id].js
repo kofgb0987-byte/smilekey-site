@@ -1,6 +1,8 @@
 // pages/archive/[id].js
 import Head from "next/head";
+import Link from "next/link";
 import { getSummary, listSummaryIds } from "../../lib/redis";
+import { findGuideForTitle } from "../../lib/guide";
 import { useState } from "react";
 
 const PHONE = "010-3503-6919";
@@ -24,13 +26,15 @@ export async function getStaticProps({ params }) {
   //    에러는 throw해서 기존 캐시 페이지를 유지하고, 진짜 없음만 404(60s 재검증).
   const item = await getSummary(id);
   if (!item || !item.title) return { notFound: true, revalidate: 60 };
+  // 이 사례의 차종·상황에 맞는 안내 가이드 — 사례 글에서 가이드로 내부 링크(가이드 색인·순위용)
+  const guide = findGuideForTitle(item.title);
   return {
-    props: { item: { ...item, id } },
+    props: { item: { ...item, id }, guide },
     revalidate: 3600,
   };
 }
 
-export default function ArchiveDetail({ item }) {
+export default function ArchiveDetail({ item, guide }) {
   const [lang, setLang] = useState("ko");
 
   const summaryByLang =
@@ -210,6 +214,17 @@ export default function ArchiveDetail({ item }) {
             원문 보기 →
           </a>
         </section>
+
+        {guide && (
+          <section className="card">
+            <strong>📖 비슷한 상황이신가요?</strong>
+            <p style={{ marginTop: 6, fontSize: 13, color: "#374151" }}>
+              <Link href={`/guide/${guide.slug}`} style={{ color: "#1e40af", textDecoration: "underline", fontWeight: 600 }}>
+                {guide.name} 안내 보기 →
+              </Link>
+            </p>
+          </section>
+        )}
 
         <section className="card">
           <strong>📞 차량 키·스마트키·도어락 문의</strong>

@@ -1,6 +1,7 @@
 // pages/services/door-lock.js
 import Head from "next/head";
 import Link from "next/link";
+import GuideLinks from "../../components/GuideLinks";
 
 const PHONE = "010-3503-6919";
 
@@ -137,6 +138,8 @@ export default function DoorLockPage() {
             도 대구 전 지역 출장으로 도와드립니다.
           </p>
         </section>
+
+        <GuideLinks service="door-lock" />
 
         <div style={{ textAlign: "center", marginTop: "1.5rem" }}>
           <Link href="/" style={{ color: "#1e40af", textDecoration: "underline", fontSize: "0.9rem" }}>

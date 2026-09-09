@@ -1,0 +1,211 @@
+[
+ {
+  "slug": "car-key-lost",
+  "name": "차키 전부 분실했을 때",
+  "title": "대구 차키 분실, 여분 키도 없을 때｜스마트키·폴딩키 출장 제작",
+  "hook": "대구에서 차키·스마트키를 분실했을 때 진행한 제작·등록 기록입니다.",
+  "query": "대구 차키 분실",
+  "service": "car-key",
+  "group": "상황",
+  "evidence_hits": 252,
+  "generated_at": "2026-09-09T04:55:56.784Z"
+ },
+ {
+  "slug": "locked-out",
+  "name": "차 안에 키 두고 문이 잠겼을 때",
+  "title": "대구 차문 잠김 열기 — 키를 차 안에 두고 잠겼을 때 수입차 차문 개방",
+  "hook": "키는 차 안에 있고 문만 잠긴 상황, 현장 출장으로 차문을 여는 작업 안내입니다.",
+  "query": "대구 차문 잠김 열기",
+  "service": "car-key",
+  "group": "상황",
+  "evidence_hits": 33,
+  "generated_at": "2026-09-09T03:59:45.889Z"
+ },
+ {
+  "slug": "remote-key-battery",
+  "name": "차키 리모컨이 안 될 때",
+  "title": "차키 리모컨 안됨, 배터리 갈아도 그대로일 때 점검 순서｜대구 동구",
+  "hook": "리모컨 무반응·수신거리 짧아짐·배터리 교체 후에도 안 될 때 점검 순서와 작업 사례.",
+  "query": "차키 리모컨 안됨",
+  "service": "smart-key",
+  "group": "상황",
+  "evidence_hits": 29,
+  "generated_at": "2026-09-09T04:03:28.883Z"
+ },
+ {
+  "slug": "folding-key",
+  "name": "폴딩키 제작·분실",
+  "title": "폴딩키 제작 대구｜아반떼·SM3·레이 분실 차키 제작",
+  "hook": "접이식 리모컨키를 잃어버렸거나 깨졌을 때 대구 동구에서 제작·수리한 기록을 정리했습니다.",
+  "query": "폴딩키 제작 대구",
+  "service": "car-key",
+  "group": "키 종류",
+  "evidence_hits": 57,
+  "generated_at": "2026-09-09T04:03:46.545Z"
+ },
+ {
+  "slug": "spare-key",
+  "name": "예비키 하나 더 만들어 두기",
+  "title": "차키 복사 대구 — 키 1개뿐인 미니쿠퍼 예비키 미리 만들기",
+  "hook": "키가 하나 남았을 때 예비키를 미리 만들어 두는 이유와 진행 순서.",
+  "query": "차키 복사 대구",
+  "service": "car-key",
+  "group": "키 종류",
+  "evidence_hits": 12,
+  "generated_at": "2026-09-09T04:07:20.607Z"
+ },
+ {
+  "slug": "ignition-repair",
+  "name": "시동키가 안 돌아갈 때",
+  "title": "시동키 안돌아감 — 이그니션 키박스 고장 수리 사례 (골프·레이·스파크)",
+  "hook": "키는 꽂히는데 돌아가지 않을 때, 키 마모와 키박스 고장 구분법과 대구 동구 수리 기록.",
+  "query": "시동키 안돌아감",
+  "service": "car-key",
+  "group": "상황",
+  "evidence_hits": 26,
+  "generated_at": "2026-09-09T04:06:54.067Z"
+ },
+ {
+  "slug": "hyundai",
+  "name": "현대·제네시스 차키 분실",
+  "title": "현대 차키 분실 대구 — 아반떼·그랜저·투싼 현장 제작 사례",
+  "hook": "현대차 차키를 잃어버렸을 때, 대구 동구에서 진행한 모델별 작업 기록.",
+  "query": "현대 차키 분실 대구",
+  "service": "car-key",
+  "group": "차종",
+  "evidence_hits": 56,
+  "generated_at": "2026-09-09T04:10:02.600Z"
+ },
+ {
+  "slug": "kia",
+  "name": "기아 차키 분실",
+  "title": "기아 차키 분실 대구 — 모닝·레이·K5·K3·셀토스·봉고3 제작 기록",
+  "hook": "대구에서 진행한 기아 모델별 차키 분실 제작 사례를 정리했습니다.",
+  "query": "기아 차키 분실 대구",
+  "service": "car-key",
+  "group": "차종",
+  "evidence_hits": 59,
+  "generated_at": "2026-09-09T04:10:53.728Z"
+ },
+ {
+  "slug": "renault",
+  "name": "르노삼성 SM·QM 스마트키 분실",
+  "title": "르노삼성 SM·QM 스마트키 분실 — SM3·SM5 노브형·SM6·QM6 현장 제작 사례",
+  "hook": "SM3·SM5 노브형·SM6·QM3·QM6·SM7 스마트키 분실 시 무엇을 확인하고 어떻게 진행되는지 정리",
+  "query": "르노삼성 스마트키 분실",
+  "service": "smart-key",
+  "group": "차종",
+  "evidence_hits": 37,
+  "generated_at": "2026-09-09T04:13:11.962Z"
+ },
+ {
+  "slug": "honda",
+  "name": "혼다 차키 분실",
+  "title": "대구 혼다 스마트키 분실 — 어코드·시빅 현장 키 제작",
+  "hook": "혼다 어코드·시빅 스마트키를 잃어버렸을 때 현장에서 키를 만든 기록. 혼다 CR-V 차키를 제작한 기록도 있습니다.",
+  "query": "혼다 스마트키 분실",
+  "service": "smart-key",
+  "group": "차종",
+  "evidence_hits": 12,
+  "generated_at": "2026-09-09T04:14:46.264Z"
+ },
+ {
+  "slug": "chevrolet",
+  "name": "쉐보레 차키 분실",
+  "title": "쉐보레 차키 분실 — 스파크·크루즈·콜로라도·트랙스 차키 제작",
+  "hook": "스파크·크루즈·트랙스·콜로라도·올란도 등 쉐보레 분실 키 제작을 다뤄 온 기록이고, 말리부·캡티바는 제작이 가능하다고 안내한 기록입니다.",
+  "query": "쉐보레 차키 분실",
+  "service": "car-key",
+  "group": "차종",
+  "evidence_hits": 24,
+  "generated_at": "2026-09-09T04:17:44.673Z"
+ },
+ {
+  "slug": "volkswagen-audi",
+  "name": "폭스바겐·아우디 차키",
+  "title": "폭스바겐 차키 안 돌아갈 때·문 잠겼을 때 — 골프·티구안·CC 대구 차키",
+  "hook": "폭스바겐 이그니션 키박스 고장부터 문 잠김, 롱롱키 리모컨 제작까지 대구 동구에서 처리한 작업 기록입니다.",
+  "query": "폭스바겐 스마트키 분실",
+  "service": "smart-key",
+  "group": "차종",
+  "evidence_hits": 19,
+  "generated_at": "2026-09-09T04:18:36.974Z"
+ },
+ {
+  "slug": "nissan-infiniti",
+  "name": "닛산·인피니티 스마트키 분실",
+  "title": "인피니티 스마트키 분실 — Q50·닛산 알티마 현장 제작",
+  "hook": "인피니티 Q50·G37·QX 시리즈와 닛산 알티마 스마트키 분실 제작 작업을 기록한 글입니다.",
+  "query": "인피니티 스마트키 분실",
+  "service": "smart-key",
+  "group": "차종",
+  "evidence_hits": 11,
+  "generated_at": "2026-09-09T04:20:15.297Z"
+ },
+ {
+  "slug": "jeep-chrysler",
+  "name": "지프·크라이슬러 차키 분실",
+  "title": "지프 차키 분실 — 대구 동구 스마트키 제작·등록 사례",
+  "hook": "지프 그랜드 체로키·체로키·랭글러·레니게이드 차키 분실 건을 제작한 기록입니다.",
+  "query": "지프 랭글러 스마트키 분실",
+  "service": "smart-key",
+  "group": "차종",
+  "evidence_hits": 9,
+  "generated_at": "2026-09-09T04:22:49.037Z"
+ },
+ {
+  "slug": "peugeot-citroen",
+  "name": "푸조·시트로엥 차키 분실",
+  "title": "푸조 스마트키 분실 — 3008·308·5008 현장 제작 사례 정리",
+  "hook": "푸조 스마트키를 잃어버렸을 때 어떤 순서로 진행되는지 실제 작업 기록으로 정리했습니다.",
+  "query": "푸조 스마트키 분실",
+  "service": "smart-key",
+  "group": "차종",
+  "evidence_hits": 8,
+  "generated_at": "2026-09-09T04:23:33.141Z"
+ },
+ {
+  "slug": "ssangyong-kgm",
+  "name": "쌍용·KGM 차키 분실",
+  "title": "쌍용 스마트키 분실, 티볼리·렉스턴·코란도·토레스 제작 사례",
+  "hook": "쌍용·KGM 키를 잃어버렸을 때 대구 동구에서 실제로 제작했던 모델과 상담 순서 정리.",
+  "query": "쌍용 스마트키 분실",
+  "service": "car-key",
+  "group": "차종",
+  "evidence_hits": 7,
+  "generated_at": "2026-09-09T04:25:29.723Z"
+ },
+ {
+  "slug": "imported-premium",
+  "name": "벤츠·BMW·볼보·렉서스 등 수입차 차키",
+  "title": "수입차 스마트키 분실 대구 — 벤츠·볼보 잠금해제, BMW 차키 제작 사례",
+  "hook": "문 잠김과 키 분실은 대응이 다릅니다. 대구 동구 브랜드별 작업 기록을 정리했습니다.",
+  "query": "수입차 스마트키 분실 대구",
+  "service": "smart-key",
+  "group": "차종",
+  "evidence_hits": 30,
+  "generated_at": "2026-09-09T04:26:53.183Z"
+ },
+ {
+  "slug": "truck-commercial",
+  "name": "화물차·트럭 차키 분실",
+  "title": "화물차 차키 분실 — 포터2·봉고3·타타 프리마 현장 제작｜대구 동구",
+  "hook": "포터2·봉고3부터 타타 프리마·메가트럭까지, 화물차 차키 분실 작업 기록입니다.",
+  "query": "화물차 차키 분실",
+  "service": "car-key",
+  "group": "차종",
+  "evidence_hits": 12,
+  "generated_at": "2026-09-09T04:29:07.820Z"
+ },
+ {
+  "slug": "motorcycle",
+  "name": "오토바이 스마트키·키 분실",
+  "title": "오토바이 스마트키 분실 — PCX·NMAX·XMAX 스쿠터 키 제작 기록",
+  "hook": "PCX·NMAX·XMAX·GSX-R125 등 오토바이 스마트키 분실 제작 작업 기록.",
+  "query": "오토바이 스마트키 분실",
+  "service": "smart-key",
+  "group": "차종",
+  "evidence_hits": 37,
+  "generated_at": "2026-09-09T04:31:01.843Z"
+ }
+]

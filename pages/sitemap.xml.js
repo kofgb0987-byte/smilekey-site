@@ -1,5 +1,6 @@
 // pages/sitemap.xml.js
 import { listAllSummaryIds, getSummary, listAllDaeguIds, getDaeguPost } from "../lib/redis";
+import guideIndex from "../content/guide/index.json";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://smilekey.me";
 
@@ -65,7 +66,20 @@ export async function getServerSideProps({ res }) {
     urlEntry({ loc: `${SITE_URL}/services/car-key`, lastmod: today, changefreq: "monthly", priority: "0.9" }),
     urlEntry({ loc: `${SITE_URL}/services/smart-key`, lastmod: today, changefreq: "monthly", priority: "0.9" }),
     urlEntry({ loc: `${SITE_URL}/services/door-lock`, lastmod: today, changefreq: "monthly", priority: "0.9" }),
+    ...(guideIndex.length
+      ? [urlEntry({ loc: `${SITE_URL}/guide`, lastmod: today, changefreq: "weekly", priority: "0.8" })]
+      : []),
   ];
+
+  // 안내 가이드 — 정적 콘텐츠(커밋)라 Redis 조회 없음. lastmod는 생성 시각.
+  const guidePages = guideIndex.map((g) =>
+    urlEntry({
+      loc: `${SITE_URL}/guide/${g.slug}`,
+      lastmod: (g.generated_at || today).slice(0, 10),
+      changefreq: "weekly",
+      priority: "0.8",
+    })
+  );
 
   const archivePages = items.map(({ id, date }) =>
     urlEntry({
@@ -88,6 +102,7 @@ export async function getServerSideProps({ res }) {
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${staticPages.join("")}
+${guidePages.join("")}
 ${archivePages.join("")}
 ${daeguPages.join("")}
 </urlset>`;

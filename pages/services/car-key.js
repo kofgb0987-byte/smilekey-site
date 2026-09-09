@@ -1,6 +1,7 @@
 // pages/services/car-key.js
 import Head from "next/head";
 import Link from "next/link";
+import GuideLinks from "../../components/GuideLinks";
 
 const PHONE = "010-3503-6919";
 
@@ -100,6 +101,8 @@ export default function CarKeyPage() {
             </div>
           ))}
         </section>
+
+        <GuideLinks service="car-key" />
 
         <div style={{ textAlign: "center", marginTop: "1.5rem" }}>
           <Link href="/" style={{ color: "#1e40af", textDecoration: "underline", fontSize: "0.9rem" }}>

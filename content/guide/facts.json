@@ -1,0 +1,9 @@
+{
+  "_comment": "가이드 글에 쓸 수 있는 가게 사실. 근거 사례 밖의 사실은 여기 있는 것만 허용. confirmed=false 항목은 사장님 확인 전이라 보수적으로 쓴다.",
+  "business": "대구 동구 중앙열쇠",
+  "phone": "010-3503-6919",
+  "sms": { "allowed": true, "note": "사이트에 문자 버튼이 있고 실제 클릭 유입이 있음. 답장 여부는 사장님 미확인.", "confirmed": false },
+  "area": { "text": "대구 동구를 중심으로 작업하며 인근 지역은 전화로 확인", "confirmed": false },
+  "hours": { "text": "", "confirmed": false },
+  "noNumbers": "가격·비용·소요시간·보증기간 숫자는 어떤 글에도 쓰지 않는다. 비용은 '차종과 키 종류에 따라 달라 전화로 안내'로만."
+}
