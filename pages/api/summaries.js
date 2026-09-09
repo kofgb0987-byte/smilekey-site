@@ -2,6 +2,13 @@
 import { listSummaryIds, saveSummary, getSummary, deleteSummary } from "../../lib/redis";
 
 export default async function handler(req, res) {
+  if (req.method === "POST" || req.method === "DELETE") {
+    const auth = req.headers.authorization || "";
+    if (!process.env.CRON_SECRET || auth !== `Bearer ${process.env.CRON_SECRET}`) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+  }
+
 
 if (req.method === "DELETE") {
 

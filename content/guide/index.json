@@ -207,5 +207,38 @@
   "group": "차종",
   "evidence_hits": 37,
   "generated_at": "2026-09-09T04:31:01.843Z"
+ },
+ {
+  "slug": "door-lock-install",
+  "name": "현관 도어락 교체·신규 설치는 어떻게 진행되나",
+  "title": "대구 도어락 설치 — 방화문 철거·교체부터 푸쉬풀 지문 도어락까지",
+  "hook": "기존 도어락 철거, 방화문·유리문 일체형 장착, 번호·카드·지문 선택까지 실제 시공 흐름.",
+  "query": "대구 도어락 설치",
+  "service": "door-lock",
+  "group": "상황",
+  "evidence_hits": 32,
+  "generated_at": "2026-09-09T06:32:03.065Z"
+ },
+ {
+  "slug": "door-lock-glass-door",
+  "name": "상가·원룸 강화유리문에 도어락 달 때",
+  "title": "상가·원룸 강화유리문 도어락 설치 — 대구 동구 작업 기록",
+  "hook": "강화유리문에는 유리문에 맞는 도어락을 답니다. 상가·원룸 유리문 작업 기록입니다.",
+  "query": "유리문 도어락 설치",
+  "service": "door-lock",
+  "group": "상황",
+  "evidence_hits": 9,
+  "generated_at": "2026-09-09T06:32:41.623Z"
+ },
+ {
+  "slug": "door-lock-password-repair",
+  "name": "도어락 비밀번호 변경·고장 수리는 이렇게",
+  "title": "도어락 비밀번호 변경과 고장 수리 — 대구 동구 현관·유리문 도어락",
+  "hook": "현관·상가 도어락 비밀번호 변경과 초기화, 증상별 수리·교체 판단 기준을 정리했습니다.",
+  "query": "도어락 비밀번호 변경",
+  "service": "door-lock",
+  "group": "상황",
+  "evidence_hits": 13,
+  "generated_at": "2026-09-09T06:32:49.990Z"
  }
 ]
