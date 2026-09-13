@@ -46,7 +46,7 @@ export default function Home({ youtubeItems, blogItems, archiveItems }) {
       "@type": "PostalAddress",
       addressCountry: "KR",
       addressLocality: "대구광역시 동구",
-      streetAddress: "검사동",
+      streetAddress: "동촌로 64",
     },
     ...(GEO
       ? { geo: { "@type": "GeoCoordinates", latitude: GEO.lat, longitude: GEO.lng } }
@@ -239,8 +239,10 @@ export default function Home({ youtubeItems, blogItems, archiveItems }) {
           </Link>
         </nav>
 
+        {/* 상세·Q&A는 활성 여부와 무관하게 렌더 — 클릭해야 그려지면 크롤러와 AI가 본문을 못 읽는다.
+            아카이브 탭은 마운트 시 /api/summaries를 부르므로 열었을 때만 그린다. */}
         <div role="tabpanel">
-          {activeTab === "summary" && (
+          <div style={{ display: activeTab === "summary" ? "block" : "none" }}>
             <SummaryTab
               phone={PHONE}
               youtubeItems={youtubeItems}
@@ -251,11 +253,13 @@ export default function Home({ youtubeItems, blogItems, archiveItems }) {
               mapLinkUrl={MAP_LINK_URL}
               archiveItems={archiveItems}
             />
-          )}
-          {activeTab === "details" && (
+          </div>
+          <div style={{ display: activeTab === "details" ? "block" : "none" }}>
             <DetailsTab phone={PHONE} mapLinkUrl={MAP_LINK_URL} />
-          )}
-          {activeTab === "qna" && <QnaTab />}
+          </div>
+          <div style={{ display: activeTab === "qna" ? "block" : "none" }}>
+            <QnaTab />
+          </div>
           {activeTab === "archive" && <ArchiveTab />}
         </div>
       </main>

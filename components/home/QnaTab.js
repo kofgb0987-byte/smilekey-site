@@ -46,9 +46,8 @@ export default function QnaTab() {
             <span className="faq-q-text">{faq.q}</span>
             <span className="faq-chevron">{openIndex === i ? "▲" : "▼"}</span>
           </button>
-          {openIndex === i && (
-            <p className="faq-a">{faq.a}</p>
-          )}
+          {/* 접혀 있어도 DOM에는 남긴다 — 조건부 렌더면 AI·크롤러가 답변 본문을 못 읽는다 */}
+          <p className="faq-a" style={{ display: openIndex === i ? undefined : "none" }}>{faq.a}</p>
         </div>
       ))}
     </section>

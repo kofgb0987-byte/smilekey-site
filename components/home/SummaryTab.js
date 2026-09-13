@@ -29,15 +29,27 @@ export default function SummaryTab({
             <a href={`tel:${phone}`}>{phone}</a>
           </li>
           <li className="info-item">
-            <span className="info-label">위치</span>
-            대구광역시 동구 검사동 (대구 전 지역 출장)
+            <span className="info-label">주소</span>
+            대구광역시 동구 동촌로 64 (검사동)
+          </li>
+          <li className="info-item">
+            <span className="info-label">출장</span>
+            대구 전 지역 · 동구(동촌 · 검사동 · 방촌 · 신암 · 율하)와 수성구 · 북구가 가장 빠릅니다
           </li>
           <li className="info-item">
             <span className="info-label">서비스</span>
-            자동차 키 복사 · 수입차 스마트키 · 폴딩키 · 도어락 설치/교체
+            자동차 키 복사 · 분실 제작, 수입차 스마트키 · 폴딩키, 디지털 도어락 설치/교체/고장 수리
           </li>
           <li className="info-item">
-            <span className="info-label">문의</span> 24시간 전화 상담 가능
+            <span className="info-label">영업</span> 연중무휴 24시간 문의 가능
+          </li>
+          <li className="info-item">
+            <span className="info-label">결제</span>
+            현금 · 계좌이체 · 카드 (현금영수증 · 세금계산서 발급 가능)
+          </li>
+          <li className="info-item">
+            <span className="info-label">비용</span>
+            차종과 키 타입, 문 종류, 현장 상황에 따라 달라 전화로 먼저 안내해 드립니다
           </li>
         </ul>
 
