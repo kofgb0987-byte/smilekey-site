@@ -32,7 +32,13 @@ export async function getStaticProps() {
   const byId = new Map(items.map((it) => [it.id, it]));
   const popular = (await topDaeguViewIdsWeekly(3))
     .filter(({ id }) => byId.has(id))
-    .map(({ id, views }) => ({ id, views, title: byId.get(id).title }));
+    .map(({ id, views }) => ({
+      id,
+      views,
+      title: byId.get(id).title,
+      date: byId.get(id).date || "", // 인기글도 목록처럼 발행일이 보이게
+      likes: likeMap[id] || 0,
+    }));
 
   return {
     props: { items, viewMap, likeMap, commentMap, popular },
@@ -101,8 +107,12 @@ export default function DaeguList({ items, viewMap = {}, likeMap = {}, commentMa
                     href={`/daegu/${encodeURIComponent(p.id)}`}
                     style={{ textDecoration: "none", color: "inherit" }}
                   >
-                    {p.title}
-                    <span style={{ fontSize: 12, opacity: 0.6 }}> · 조회 {p.views}</span>
+                    <span style={{ fontWeight: 600 }}>{p.title}</span>
+                    <div style={{ fontSize: 12, opacity: 0.6, marginTop: 2 }}>
+                      {p.date}
+                      {` · 조회 ${p.views}`}
+                      {p.likes ? ` · ♥ ${p.likes}` : ""}
+                    </div>
                   </Link>
                 </li>
               ))}
