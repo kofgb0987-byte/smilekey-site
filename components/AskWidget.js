@@ -121,7 +121,7 @@ export default function AskWidget() {
         >
           <div style={{ fontWeight: 800, fontSize: 15, marginBottom: 4 }}>중앙열쇠에 물어보기</div>
           <p style={{ margin: "0 0 10px", color: "#6b7280", fontSize: 12.5 }}>
-            차종·상황을 적어 주시면 보통 30초 안에 답해 드립니다. 급하시면 <a href={`tel:${PHONE}`} style={{ color: "#1e40af", fontWeight: 700 }}>바로 전화</a>가 가장 빠릅니다.
+            차종·상황을 적어 주시면 보통 30초 안에 답해 드립니다. 급하시면 <a href={`tel:${PHONE}`} style={{ color: "#1e40af", fontWeight: 700 }}>전화 {PHONE}</a>가 가장 빠릅니다.
           </p>
 
           {(state === "idle" || state === "sending" || state === "error" || state === "limited") && (
@@ -182,6 +182,7 @@ export default function AskWidget() {
                 <a href={`tel:${PHONE}`} onClick={() => ga("ask_to_call", { stage: "ready" })} style={{ ...btn, background: "#22c55e", color: "#fff" }}>📞 전화하기</a>
                 <a href={`sms:${PHONE}`} onClick={() => ga("ask_to_sms", { stage: "ready" })} style={{ ...btn, background: "#eff6ff", color: "#1e40af", border: "1.5px solid #1e40af" }}>💬 문자하기</a>
               </div>
+              <p style={{ margin: "8px 0 0", textAlign: "center", color: "#6b7280", fontSize: 12.5 }}>{PHONE} · PC에서는 누르면 번호가 복사됩니다</p>
               <button type="button" onClick={reset} style={{ marginTop: 10, background: "none", border: 0, color: "#6b7280", fontSize: 12.5, cursor: "pointer", textDecoration: "underline" }}>다른 질문 하기</button>
             </div>
           )}
