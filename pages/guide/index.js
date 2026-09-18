@@ -5,7 +5,7 @@ import guideIndex from "../../content/guide/index.json";
 
 const PHONE = "010-3503-6919";
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://smilekey.me";
-const GROUPS = ["상황", "키 종류", "차종"];
+const GROUPS = ["상황", "키 종류", "차종", "지역"];
 
 export default function GuideIndex() {
   const canonical = `${SITE_URL}/guide`;
