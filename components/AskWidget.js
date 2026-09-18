@@ -152,10 +152,10 @@ export default function AskWidget() {
               >
                 {state === "sending" ? "보내는 중…" : "질문 보내기"}
               </button>
-              {state === "error" && <p style={{ margin: "8px 0 0", color: "#b91c1c", fontSize: 13 }}>접수에 실패했습니다. 전화로 문의해 주세요.</p>}
-              {state === "limited" && <p style={{ margin: "8px 0 0", color: "#b91c1c", fontSize: 13 }}>질문이 많이 접수되어 잠시 쉬고 있습니다. 전화로 문의해 주세요.</p>}
+              {state === "error" && <p style={{ margin: "8px 0 0", color: "#b91c1c", fontSize: 13 }}>죄송합니다, 접수가 되지 않았습니다. 전화({PHONE})로 문의해 주시면 바로 도와드리겠습니다.</p>}
+              {state === "limited" && <p style={{ margin: "8px 0 0", color: "#b91c1c", fontSize: 13 }}>지금 질문이 많이 몰려 잠시 쉬고 있습니다. 급하시면 전화({PHONE})로 문의해 주세요.</p>}
               <p style={{ margin: "10px 0 0", color: "#9ca3af", fontSize: 11.5 }}>
-                문 여는 방법과 금액은 답하지 않습니다. 정확한 비용은 전화로 안내합니다. 입력 내용은 답변과 연락 목적에만 쓰고 30일 뒤 삭제됩니다.
+                비용은 차종과 상황에 따라 달라 전화로 바로 안내드리고, 문 여는 방법은 안전을 위해 안내하지 않는 점 양해해 주세요. 남겨주신 내용은 답변과 연락에만 쓰고 30일 뒤 지워집니다.
               </p>
             </form>
           )}
