@@ -10,6 +10,7 @@
 import { collectAllCandidates } from "../../../lib/collect";
 import { aiWriteDaeguPost, aiReviewDaeguPost } from "../../../lib/ai";
 import { filterUnseenLinks, listDaeguIds, getDaeguPost } from "../../../lib/redis";
+import { sourceMixOf, pickBalancedCandidates } from "../../../lib/candidates";
 import {
   MAX_CANDIDATES_TO_AI,
   RECENT_TITLES_FOR_DEDUP,
@@ -44,11 +45,7 @@ export default async function handler(req, res) {
       return res.status(200).json({ ok: true, skipped: "후보 없음(수집 0건)" });
     }
     // 소스별 수집 현황 — 네이버 env 미적용 등 수집 이상을 로그에서 바로 보이게
-    const sourceMix = {
-      gnews: all.filter((c) => (c.link || "").includes("news.google.com")).length,
-      naver: all.filter((c) => !(c.link || "").includes("news.google.com") && c.type !== "official").length,
-      official: all.filter((c) => c.type === "official").length,
-    };
+    const sourceMix = sourceMixOf(all);
 
     // 2~3) 소재 선정→작성→검수. 선택된 주제가 차단(중복·근거부족·검수거부)되면
     //      해당 소재를 소진(seen)하고 남은 후보로 재시도 — 첫 선택이 막혔다고
@@ -71,7 +68,11 @@ export default async function handler(req, res) {
       }
       // 매 시도마다 재계산 — 직전 시도에서 소진된 링크를 반영
       const unseenLinks = new Set(await filterUnseenLinks(all.map((c) => c.link)));
-      fresh = all.filter((c) => unseenLinks.has(c.link)).slice(0, MAX_CANDIDATES_TO_AI);
+      // 소스별 균형 선발 — daegu-candidates.js와 같은 규칙(최신순 절단이 블로그·공식을 배제했던 것 수정)
+      fresh = pickBalancedCandidates(
+        all.filter((c) => unseenLinks.has(c.link)),
+        MAX_CANDIDATES_TO_AI
+      );
       if (!fresh.length) {
         return res.status(200).json({ ok: true, skipped: "새 소재 없음(전부 사용됨)", attempts: skips });
       }

@@ -129,7 +129,8 @@ async function main() {
     const batch = cand.batch;
     log(
       `후보 attempt=${attempt} fresh=${cand.fresh}/${cand.totalCandidates} ` +
-        `mix=${JSON.stringify(cand.sourceMix)} timings=${JSON.stringify(cand.timings)}`
+        `mix=${JSON.stringify(cand.sourceMix)} freshMix=${JSON.stringify(cand.freshMix)} ` +
+        `timings=${JSON.stringify(cand.timings)}`
     );
 
     // 2) 작성

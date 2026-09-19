@@ -9,6 +9,7 @@
 
 import { collectAllCandidates } from "../../../lib/collect";
 import { filterUnseenLinks, listDaeguIds, getDaeguPost } from "../../../lib/redis";
+import { sourceMixOf, pickBalancedCandidates } from "../../../lib/candidates";
 import {
   MAX_CANDIDATES_TO_AI,
   RECENT_TITLES_FOR_DEDUP,
@@ -46,17 +47,18 @@ export default async function handler(req, res) {
     }
 
     // 소스별 수집 현황 — 네이버 env 미적용 등 수집 이상을 로그에서 바로 보이게
-    const sourceMix = {
-      gnews: all.filter((c) => (c.link || "").includes("news.google.com")).length,
-      naver: all.filter((c) => !(c.link || "").includes("news.google.com") && c.type !== "official").length,
-      official: all.filter((c) => c.type === "official").length,
-    };
+    const sourceMix = sourceMixOf(all);
 
-    // 이번 회차에 쓸 수 있는 소재만 — 직전 시도에서 소진(seen)된 링크는 빠진다
+    // 이번 회차에 쓸 수 있는 소재만 — 직전 시도에서 소진(seen)된 링크는 빠진다.
+    // 소스(구글·네이버뉴스·블로그·공식)별로 균형 있게 뽑는다 — 최신순 단순 절단은
+    // 오늘 뉴스만으로 40건이 차 블로그·공식 행사·전날 예고가 전부 잘렸음(09-19 한마음축제 누락)
     const t1 = Date.now();
     const unseen = new Set(await filterUnseenLinks(all.map((c) => c.link)));
     timings.unseen = Date.now() - t1;
-    const fresh = all.filter((c) => unseen.has(c.link)).slice(0, MAX_CANDIDATES_TO_AI);
+    const fresh = pickBalancedCandidates(
+      all.filter((c) => unseen.has(c.link)),
+      MAX_CANDIDATES_TO_AI
+    );
 
     if (!fresh.length) {
       return res.status(200).json({ ok: true, empty: true, reason: "새 소재 없음(전부 사용됨)" });
@@ -85,6 +87,7 @@ export default async function handler(req, res) {
       totalCandidates: all.length,
       fresh: fresh.length,
       sourceMix,
+      freshMix: sourceMixOf(fresh),
       timings: { ...timings, total: Date.now() - t0 },
     });
   } catch (e) {
