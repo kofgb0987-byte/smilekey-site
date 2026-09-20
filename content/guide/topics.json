@@ -477,6 +477,116 @@
       "exclude": "툴레|THULE|루프박스|자전거|캐리어",
       "match": "영천",
       "angle": "영천 출장 사례 모음. 원거리 출장 시 사전 전화 확인이 필요하다는 점은 일반 안내로."
+    },
+    {
+      "slug": "hyundai-genesis",
+      "name": "제네시스 스마트키 분실·차키 제작",
+      "query": "제네시스 스마트키 분실 대구",
+      "angle": "제네시스 스마트키 전량 분실·추가 제작 사례. 근거가 3~4건이라 세대(DH·G80·GV80 등)는 사례에 나온 것만 말하고 나머지는 전화 확인으로.",
+      "match": "제네시스|Genesis|G70|G80|G90|GV70|GV80|GV60|G380",
+      "exclude": "툴레|THULE|루프박스|자전거|캐리어",
+      "service": "smart-key",
+      "group": "차종",
+      "minCases": 3
+    },
+    {
+      "slug": "bmw",
+      "name": "BMW 스마트키 분실·차키 제작",
+      "query": "BMW 스마트키 분실 대구",
+      "angle": "BMW 스마트키 분실·추가 제작(Z4 등) 사례. 미니쿠퍼는 별도 가이드(imported-premium)라 제외. 차대별 제한은 유보 표현.",
+      "match": "BMW|비엠더블유",
+      "exclude": "툴레|THULE|루프박스|자전거|캐리어",
+      "service": "smart-key",
+      "group": "차종",
+      "minCases": 3
+    },
+    {
+      "slug": "kia-sorento",
+      "name": "쏘렌토 스마트키 분실",
+      "query": "쏘렌토 스마트키 분실 대구",
+      "angle": "쏘렌토 세대별 스마트키 분실·현장 제작 사례. 근거 적음 — 사례 범위에서만.",
+      "match": "쏘렌토|소렌토",
+      "exclude": "툴레|THULE|루프박스|자전거|캐리어",
+      "service": "car-key",
+      "group": "차종",
+      "minCases": 3
+    },
+    {
+      "slug": "hyundai-santafe",
+      "name": "싼타페 스마트키 분실",
+      "query": "싼타페 스마트키 분실 대구",
+      "angle": "싼타페 스마트키·폴딩키 분실 제작 사례. 근거 적음 — 사례 범위에서만.",
+      "match": "싼타페|산타페",
+      "exclude": "툴레|THULE|루프박스|자전거|캐리어",
+      "service": "car-key",
+      "group": "차종",
+      "minCases": 3
+    },
+    {
+      "slug": "kia-sportage",
+      "name": "스포티지 스마트키 분실",
+      "query": "스포티지 스마트키 분실 대구",
+      "angle": "스포티지 스마트키 분실·제작 사례. 근거 적음 — 사례 범위에서만.",
+      "match": "스포티지",
+      "exclude": "툴레|THULE|루프박스|자전거|캐리어",
+      "service": "car-key",
+      "group": "차종",
+      "minCases": 3
+    },
+    {
+      "slug": "kia-seltos",
+      "name": "셀토스 스마트키 분실",
+      "query": "셀토스 스마트키 분실 대구",
+      "angle": "셀토스 스마트키 분실·제작 사례. 근거 적음 — 사례 범위에서만.",
+      "match": "셀토스",
+      "exclude": "툴레|THULE|루프박스|자전거|캐리어",
+      "service": "car-key",
+      "group": "차종",
+      "minCases": 3
+    },
+    {
+      "slug": "renault-qm6",
+      "name": "QM6 스마트키 분실",
+      "query": "QM6 스마트키 분실 대구",
+      "angle": "QM6 카드키·스마트키 분실 제작 사례. QM3와 혼동하지 않게 모델명 명확히.",
+      "match": "QM6",
+      "exclude": "툴레|THULE|루프박스|자전거|캐리어",
+      "service": "smart-key",
+      "group": "차종",
+      "minCases": 3
+    },
+    {
+      "slug": "lexus",
+      "name": "렉서스 스마트키 분실",
+      "query": "렉서스 스마트키 분실 대구",
+      "angle": "렉서스 스마트키 분실·차문 개방 사례. 근거 적음 — 사례 범위에서만.",
+      "match": "렉서스|Lexus",
+      "exclude": "툴레|THULE|루프박스|자전거|캐리어",
+      "service": "smart-key",
+      "group": "차종",
+      "minCases": 3
+    },
+    {
+      "slug": "chevrolet-malibu",
+      "name": "말리부 차키 분실",
+      "query": "말리부 차키 분실 대구",
+      "angle": "말리부 스마트키·폴딩키 분실 제작 사례. 근거 적음 — 사례 범위에서만.",
+      "match": "말리부",
+      "exclude": "툴레|THULE|루프박스|자전거|캐리어",
+      "service": "car-key",
+      "group": "차종",
+      "minCases": 3
+    },
+    {
+      "slug": "chevrolet-orlando",
+      "name": "올란도 차키 분실",
+      "query": "올란도 차키 분실 대구",
+      "angle": "올란도 차키·리모컨키 분실 제작 사례. 근거 적음 — 사례 범위에서만.",
+      "match": "올란도",
+      "exclude": "툴레|THULE|루프박스|자전거|캐리어",
+      "service": "car-key",
+      "group": "차종",
+      "minCases": 3
     }
   ]
 }

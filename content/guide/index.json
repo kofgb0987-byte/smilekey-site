@@ -493,5 +493,115 @@
   "group": "지역",
   "evidence_hits": 12,
   "generated_at": "2026-09-18T14:13:51.149Z"
+ },
+ {
+  "slug": "hyundai-genesis",
+  "name": "제네시스 스마트키 분실·차키 제작",
+  "title": "대구 제네시스 스마트키 분실 — G380 현장 제작·등록, G80·G90 차문 열기",
+  "hook": "제네시스 스마트키 분실로 견인 없이 현장에서 제작한 기록과, 키를 차 안에 두고 문이 잠긴 차량을 연 기록을 정리했습니다.",
+  "query": "제네시스 스마트키 분실 대구",
+  "service": "smart-key",
+  "group": "차종",
+  "evidence_hits": 4,
+  "generated_at": "2026-09-20T06:02:17.212Z"
+ },
+ {
+  "slug": "bmw",
+  "name": "BMW 스마트키 분실·차키 제작",
+  "title": "BMW 스마트키 분실 대구 — 520d·X5 키 제작과 잠금 해제 사례",
+  "hook": "BMW 520d·X5 등 대구에서 실제 진행한 키 제작과 잠금 해제 기록입니다.",
+  "query": "BMW 스마트키 분실 대구",
+  "service": "smart-key",
+  "group": "차종",
+  "evidence_hits": 4,
+  "generated_at": "2026-09-20T06:00:50.942Z"
+ },
+ {
+  "slug": "kia-sorento",
+  "name": "쏘렌토 스마트키 분실",
+  "title": "쏘렌토 스마트키 분실 대구 — 스마트키 제작 사례 (MQ4 포함)",
+  "hook": "쏘렌토 키를 전부 잃어버린 경우까지, 기록에 남은 쏘렌토 스마트키 제작 사례만 정리했습니다.",
+  "query": "쏘렌토 스마트키 분실 대구",
+  "service": "car-key",
+  "group": "차종",
+  "evidence_hits": 4,
+  "generated_at": "2026-09-20T06:02:16.024Z"
+ },
+ {
+  "slug": "hyundai-santafe",
+  "name": "싼타페 스마트키 분실",
+  "title": "싼타페 스마트키 분실 대구 — CM·더 프라임 DM 폴딩키 제작 사례",
+  "hook": "싼타페 CM 폴딩키와 더 프라임 DM 스마트키를 분실했을 때 제작한 기록입니다.",
+  "query": "싼타페 스마트키 분실 대구",
+  "service": "car-key",
+  "group": "차종",
+  "evidence_hits": 4,
+  "generated_at": "2026-09-20T06:02:25.636Z"
+ },
+ {
+  "slug": "kia-sportage",
+  "name": "스포티지 스마트키 분실",
+  "title": "스포티지 스마트키 분실 대구 — NQ5 현장 제작 사례",
+  "hook": "대구 동구 중앙열쇠가 기아 스포티지 NQ5 스마트키 분실로 제작한 작업 기록입니다.",
+  "query": "스포티지 스마트키 분실 대구",
+  "service": "car-key",
+  "group": "차종",
+  "evidence_hits": 3,
+  "generated_at": "2026-09-20T06:05:18.509Z"
+ },
+ {
+  "slug": "kia-seltos",
+  "name": "셀토스 스마트키 분실",
+  "title": "셀토스 스마트키 분실, 대구에서 현장 제작한 작업 기록",
+  "hook": "대구에서 진행한 기아 셀토스 스마트키 분실 제작 작업 기록을 정리했습니다.",
+  "query": "셀토스 스마트키 분실 대구",
+  "service": "car-key",
+  "group": "차종",
+  "evidence_hits": 3,
+  "generated_at": "2026-09-20T06:04:52.016Z"
+ },
+ {
+  "slug": "renault-qm6",
+  "name": "QM6 스마트키 분실",
+  "title": "QM6 스마트키 분실 대구 — 키를 전부 잃었을 때 제작 사례",
+  "hook": "대구 동구에서 진행한 르노삼성 QM6 스마트키 분실 신규 제작 기록 정리.",
+  "query": "QM6 스마트키 분실 대구",
+  "service": "smart-key",
+  "group": "차종",
+  "evidence_hits": 4,
+  "generated_at": "2026-09-20T06:05:17.961Z"
+ },
+ {
+  "slug": "lexus",
+  "name": "렉서스 스마트키 분실",
+  "title": "대구 렉서스 차문 잠김·차키 제작 — ES300·IS250 작업 사례",
+  "hook": "렉서스 키를 잃어버렸거나 차문이 잠겼을 때, 대구 동구에서 실제로 한 작업 기준으로 정리했습니다.",
+  "query": "렉서스 스마트키 분실 대구",
+  "service": "smart-key",
+  "group": "차종",
+  "evidence_hits": 4,
+  "generated_at": "2026-09-20T06:08:07.759Z"
+ },
+ {
+  "slug": "chevrolet-malibu",
+  "name": "말리부 차키 분실",
+  "title": "말리부 차키 분실, 대구 동구 쉐보레 스마트키 제작 사례",
+  "hook": "쉐보레 말리부 스마트키를 분실했을 때 대구 동구에서 제작한 작업 기록.",
+  "query": "말리부 차키 분실 대구",
+  "service": "car-key",
+  "group": "차종",
+  "evidence_hits": 3,
+  "generated_at": "2026-09-20T06:07:51.570Z"
+ },
+ {
+  "slug": "chevrolet-orlando",
+  "name": "올란도 차키 분실",
+  "title": "올란도 차키 분실 대구, 스마트키 현장 제작·등록 사례",
+  "hook": "대구 동구에서 진행한 쉐보레 올란도 스마트키 분실 제작·등록 작업 기록.",
+  "query": "올란도 차키 분실 대구",
+  "service": "car-key",
+  "group": "차종",
+  "evidence_hits": 4,
+  "generated_at": "2026-09-20T06:07:47.571Z"
  }
 ]
