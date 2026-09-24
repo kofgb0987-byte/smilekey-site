@@ -61,7 +61,8 @@ export default function GuidePage({ post, recentCases }) {
   return (
     <>
       <Head>
-        <title>{post.title} | 대구 중앙열쇠</title>
+        {/* 한 문자열로 넘겨야 함 — {expr} + 문자열 두 조각이면 SSR이 <!-- --> 구분자를 title 텍스트에 그대로 박음(09-23 발견, 55편 전부) */}
+        <title>{`${post.title} | 대구 중앙열쇠`}</title>
         <meta name="description" content={desc} />
         <link rel="canonical" href={canonical} />
         <meta property="og:title" content={post.title} />
