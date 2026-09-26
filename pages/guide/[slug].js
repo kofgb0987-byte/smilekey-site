@@ -4,6 +4,7 @@ import Head from "next/head";
 import Link from "next/link";
 import posts from "../../content/guide/posts.json";
 import GuideLinks from "../../components/GuideLinks";
+import ImportedKeyNotice from "../../components/ImportedKeyNotice";
 import { getRecentCases, topicBySlug } from "../../lib/guide";
 
 const PHONE = "010-3503-6919";
@@ -21,10 +22,12 @@ export async function getStaticProps({ params }) {
   const recentCases = topic ? await getRecentCases(topic.match, 6) : [];
   // 본문 JSON에서 페이지에 필요 없는 큰 필드는 떼어낸다(evidence·review는 검토용)
   const { evidence, review, ...body } = post;
-  return { props: { post: body, recentCases }, revalidate: 86400 };
+  // 수입차 주제(topics.json imported=true)와 예비키 글엔 "키 있을 때 미리 복사" 안내 상자를 붙인다(사실은 facts.json·models.json)
+  const keyNotice = !!(topic && (topic.imported || topic.slug === "spare-key"));
+  return { props: { post: body, recentCases, keyNotice }, revalidate: 86400 };
 }
 
-export default function GuidePage({ post, recentCases }) {
+export default function GuidePage({ post, recentCases, keyNotice }) {
   const canonical = `${SITE_URL}/guide/${post.slug}`;
   const desc = `${post.hook || post.title} – 대구 동구 중앙열쇠 실제 작업 기록 기반 안내`.replace(/\s+/g, " ").slice(0, 155);
   const dateIso = post.generated_at || new Date().toISOString();
@@ -103,6 +106,8 @@ export default function GuidePage({ post, recentCases }) {
             <p style={{ lineHeight: 1.8, whiteSpace: "pre-line", color: "#333" }}>{s.body}</p>
           </section>
         ))}
+
+        {keyNotice && <ImportedKeyNotice />}
 
         {recentCases && recentCases.length > 0 && (
           <section className="card" style={{ marginBottom: "1rem" }}>

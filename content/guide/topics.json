@@ -1,5 +1,5 @@
 {
-  "_comment": "가이드 주제 정의. match는 작업 아카이브(제목+한국어요약)에서 근거 사례를 고르는 정규식(i 플래그). service는 연결할 서비스 페이지. angle은 글의 초점(중복 방지용). minCases 미만이면 생성기가 건너뛴다.",
+  "_comment": "가이드 주제 정의. match는 작업 아카이브(제목+한국어요약)에서 근거 사례를 고르는 정규식(i 플래그). service는 연결할 서비스 페이지. angle은 글의 초점(중복 방지용). minCases 미만이면 생성기가 건너뛴다. imported=true는 수입차 주제 — 가이드 페이지에 수입차 키 사전 복사 안내(ImportedKeyNotice)가 붙고 생성기 프롬프트에 facts.importedKey가 들어간다.",
   "topics": [
     {
       "slug": "car-key-lost",
@@ -100,7 +100,8 @@
       "match": "어코드|시빅|CR-?V|오딧세이|파일럿|혼다 (어코드|시빅|자동차|스마트키|차키)",
       "service": "smart-key",
       "group": "차종",
-      "minCases": 5
+      "minCases": 5,
+      "imported": true
     },
     {
       "slug": "chevrolet",
@@ -120,7 +121,8 @@
       "match": "폭스바겐|골프|티구안|파사트|제타|아테온|투아렉|비틀|아우디",
       "service": "smart-key",
       "group": "차종",
-      "minCases": 5
+      "minCases": 5,
+      "imported": true
     },
     {
       "slug": "nissan-infiniti",
@@ -130,7 +132,8 @@
       "match": "닛산|인피니티|알티마|맥시마|무라노|QX\\d|Q50|Q60|G35|G37",
       "service": "smart-key",
       "group": "차종",
-      "minCases": 4
+      "minCases": 4,
+      "imported": true
     },
     {
       "slug": "jeep-chrysler",
@@ -140,7 +143,8 @@
       "match": "지프|jeep|랭글러|체로키|레니게이드|컴패스|크라이슬러|닷지",
       "service": "smart-key",
       "group": "차종",
-      "minCases": 4
+      "minCases": 4,
+      "imported": true
     },
     {
       "slug": "peugeot-citroen",
@@ -150,7 +154,8 @@
       "match": "푸조|시트로엥|DS[3-7]|3008|5008|2008|308|508",
       "service": "smart-key",
       "group": "차종",
-      "minCases": 4
+      "minCases": 4,
+      "imported": true
     },
     {
       "slug": "ssangyong-kgm",
@@ -170,7 +175,8 @@
       "match": "벤츠|메르세데스|BMW|볼보|렉서스|토요타|도요타|캠리|랜드로버|레인지로버|재규어|포르쉐|미니쿠퍼|미니 쿠퍼|포드|링컨|익스플로러|머스탱|캐딜락|마세라티|벤틀리",
       "service": "smart-key",
       "group": "차종",
-      "minCases": 6
+      "minCases": 6,
+      "imported": true
     },
     {
       "slug": "truck-commercial",
@@ -388,7 +394,8 @@
       "exclude": "툴레|THULE|루프박스|자전거|캐리어",
       "service": "smart-key",
       "group": "차종",
-      "minCases": 5
+      "minCases": 5,
+      "imported": true
     },
     {
       "slug": "vw-beetle",
@@ -399,7 +406,8 @@
       "exclude": "툴레|THULE|루프박스|자전거|캐리어",
       "service": "smart-key",
       "group": "차종",
-      "minCases": 5
+      "minCases": 5,
+      "imported": true
     },
     {
       "slug": "vw-tiguan",
@@ -410,7 +418,8 @@
       "exclude": "툴레|THULE|루프박스|자전거|캐리어",
       "service": "smart-key",
       "group": "차종",
-      "minCases": 5
+      "minCases": 5,
+      "imported": true
     },
     {
       "slug": "mercedes-benz",
@@ -421,7 +430,8 @@
       "exclude": "툴레|THULE|루프박스|자전거|캐리어",
       "service": "smart-key",
       "group": "차종",
-      "minCases": 5
+      "minCases": 5,
+      "imported": true
     },
     {
       "slug": "volvo",
@@ -432,7 +442,8 @@
       "exclude": "툴레|THULE|루프박스|자전거|캐리어",
       "service": "smart-key",
       "group": "차종",
-      "minCases": 5
+      "minCases": 5,
+      "imported": true
     },
     {
       "slug": "honda-pcx",
@@ -498,7 +509,8 @@
       "exclude": "툴레|THULE|루프박스|자전거|캐리어",
       "service": "smart-key",
       "group": "차종",
-      "minCases": 3
+      "minCases": 3,
+      "imported": true
     },
     {
       "slug": "kia-sorento",
@@ -564,7 +576,8 @@
       "exclude": "툴레|THULE|루프박스|자전거|캐리어",
       "service": "smart-key",
       "group": "차종",
-      "minCases": 3
+      "minCases": 3,
+      "imported": true
     },
     {
       "slug": "chevrolet-malibu",

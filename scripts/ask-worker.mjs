@@ -79,6 +79,17 @@ const FACTS = `상호 중앙열쇠 · 대구광역시 동구 동촌로 64(검사
 비용: 차종·연식·키 방식·문 종류·현장 상황에 따라 달라 전화로만 안내 — 금액은 절대 말하지 않는다
 도어락 배터리 방전: 대부분 바깥쪽 아래 9V 비상전원 단자가 있어 9V 건전지를 대고 번호를 누르면 1회 열림. 단자가 없거나 안 되면 출장 개방 후 배터리 교체`;
 
+// 수입차 키 사전 복사 안내 + 기존 키 없이는 복사가 안 되는 차종(사장님 확인분) — 가이드 페이지·llms.txt와 같은 JSON을 읽는다(content/guide/facts.json·models.json)
+const readJson = (f) => JSON.parse(fs.readFileSync(path.join(ROOT, "content", "guide", f), "utf8"));
+const GUIDE_FACTS = readJson("facts.json");
+const NO_COPY = (readJson("models.json").noCopyWithoutKey || []).filter((m) => m.confirmed !== false);
+const KEY_FACTS = [
+  GUIDE_FACTS.importedKey && GUIDE_FACTS.importedKey.confirmed ? `수입차 키: ${GUIDE_FACTS.importedKey.text}` : "",
+  NO_COPY.length
+    ? `기존 키가 없으면 복사가 안 되는 차종(사장님 확인): ${NO_COPY.map((m) => `${m.brand} ${m.model}${m.years ? `(${m.years})` : ""}`).join(", ")} — 이 차종은 키를 전부 잃어버리면 현장 제작이 어려워 제조사 서비스센터 경로를 안내하고, 키가 하나라도 남아 있으면 지금 예비키를 복사해 두라고 권한다`
+    : "",
+].filter(Boolean).join("\n");
+
 const POSTS = JSON.parse(fs.readFileSync(path.join(ROOT, "content", "guide", "posts.json"), "utf8"));
 const norm = (s) => String(s || "").toLowerCase();
 function tokens(s) {
@@ -143,6 +154,7 @@ ${q.question}
 
 [업체 정보]
 ${FACTS}
+${KEY_FACTS}
 
 [관련 안내 가이드 — 우리 사이트의 검증된 글]
 ${guides.map(guideText).join("\n\n")}
@@ -151,6 +163,7 @@ ${guides.map(guideText).join("\n\n")}
 1. 문·차량·도어락을 여는 방법, 요령, 도구는 어떤 표현으로도 설명하지 않는다. 그런 질문에는 "정당한 소유자 확인 후 현장에서 안전하게 열어 드린다"고만 답한다. 단 도어락 배터리 방전 시 9V 건전지 비상전원 안내는 허용한다(업체 정보에 있음).
 2. 금액·가격·비용 범위를 숫자로 말하지 않는다. 비용 질문에는 "차종·연식·키 방식·현장 상황에 따라 달라 전화로 바로 안내한다"고 답한다.
 3. 도착 시간, 오늘 가능 여부, 특정 차종의 작업 가능 여부를 단정하지 않는다. 가이드에 그 차종 사례가 있으면 "사례가 있다"고 말하고, 확정은 전화로 넘긴다.
+   단 업체 정보에 "기존 키가 없으면 복사가 안 되는 차종"으로 적힌 차종은 그 사실(키가 있어야 복사 가능, 전부 분실 시 서비스센터 경로)을 말해도 된다. 수입차 질문엔 키가 남아 있을 때 예비키를 미리 복사해 두라는 안내를 한 문장 넣는다.
 4. 법률·보험 처리(보험 긴급출동 등)는 단정하지 않는다.
 5. 근거 없는 사실을 만들지 않는다. 가이드에 없는 차종·모델·연식 정보는 말하지 않는다.
 6. 방문자가 남을 대신해 여는 것처럼 보이거나 소유권이 의심되는 질문이면 FLAG를 unsafe로 하고, 답변은 소유자 확인 안내만 한다.

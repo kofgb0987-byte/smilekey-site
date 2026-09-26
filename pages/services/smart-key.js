@@ -2,6 +2,7 @@
 import Head from "next/head";
 import Link from "next/link";
 import GuideLinks from "../../components/GuideLinks";
+import ImportedKeyNotice from "../../components/ImportedKeyNotice";
 
 const PHONE = "010-3503-6919";
 
@@ -118,6 +119,8 @@ export default function SmartKeyPage() {
             그 외 수입차도 차종과 연식을 알려주시면 가능 여부를 바로 확인해 드립니다.
           </p>
         </section>
+
+        <ImportedKeyNotice style={{ marginTop: "1rem", marginBottom: 0 }} />
 
         <section className="card" style={{ marginTop: "1rem" }}>
           <h2 style={{ fontSize: "1.1rem", fontWeight: 700, marginBottom: "0.75rem" }}>자주 묻는 질문</h2>

@@ -86,6 +86,17 @@ function pickEvidence(topic, recs) {
 const evidenceText = (picked) => picked.map((r, i) => `[${i + 1}] ${r.dateIso.slice(0, 7)} | ${String(r.title).trim()}\n    요약: ${String(r.summary_ko || "").trim()}`).join("\n");
 
 // ---------- 프롬프트 ----------
+// 사장님이 확인한 사실(facts.json importedKey · models.json noCopyWithoutKey)은 근거 사례 밖이어도 써도 된다.
+// 수입차 주제(topics.json imported=true)와 예비키 글에만 넣는다. 페이지에는 ImportedKeyNotice 상자로도 붙으니 본문은 한두 문장이면 충분.
+const models = JSON.parse(fs.readFileSync(path.join(CONTENT, "models.json"), "utf8"));
+function ownerFacts(topic) {
+  if (!(topic.imported || topic.slug === "spare-key")) return "";
+  const lines = [];
+  if (facts.importedKey && facts.importedKey.confirmed) lines.push(`- 사장님이 확인한 사실이라 한두 문장으로 녹여도 된다(이 문장 안의 "한 달 가까이"는 숫자 금지 예외): "${facts.importedKey.text}"`);
+  const noCopy = (models.noCopyWithoutKey || []).filter((m) => m.confirmed !== false && (m.guide === topic.slug || topic.slug === "imported-premium" || topic.slug === "spare-key"));
+  if (noCopy.length) lines.push(`- 사장님 확인: 기존 키가 없으면 복사가 안 되는 차종 = ${noCopy.map((m) => `${m.brand} ${m.model}${m.years ? `(${m.years})` : ""}`).join(", ")} — 키를 전부 잃어버리면 현장 제작이 어려워 서비스센터 경로. 이 사실은 써도 된다.`);
+  return lines.length ? "\n" + lines.join("\n") : "";
+}
 function writePrompt(topic, picked) {
   return `
 너는 smilekey.me(${facts.business}, 자동차키·스마트키 전문) 사이트의 편집자야.
@@ -103,7 +114,7 @@ function writePrompt(topic, picked) {
 - "실제 사례" 섹션을 반드시 하나 넣고, 근거 사례의 모델을 5개 이상 구체적으로 언급해라. 시기는 연·월까지만.
 - 독자에게 요구할 정보는 차종·연식·차량번호·차량 위치 정도로 제한하고 "알려주시면 상담이 빠르다" 수준으로.
 - 인사말·자기소개·과장·최상급 금지. 본문은 바로 내용으로 시작. 이모지 최대 1개.
-- 마지막 섹션은 연락 안내: 전화 ${facts.phone}${facts.sms.allowed ? ", 통화가 어려우면 같은 번호로 문자" : ""}.
+- 마지막 섹션은 연락 안내: 전화 ${facts.phone}${facts.sms.allowed ? ", 통화가 어려우면 같은 번호로 문자" : ""}.${ownerFacts(topic)}
 - 제목은 60자 이내, "${topic.query}"의 핵심어를 포함. 다른 주제 글과 구분되게 이 주제의 상황·차종이 제목에 드러나야 한다.
 - faq는 이 주제에서 독자가 실제로 물을 법한 질문 2~3개. 답도 위 규칙(근거 범위·숫자 금지·유보 표현)을 따른다.
 - 출력은 JSON만. 추가 텍스트 금지.
@@ -126,6 +137,7 @@ function reviewPrompt(draft, picked) {
    중 [근거 사례]에 없거나 기록보다 부풀린 것. "보통·일반적으로·경우가 많다"로 유보한 일반 상식 문장과
    "${facts.area.text}" 문장, 전화·문자 안내 문장은 제외. 없으면 빈 배열.
 2. numbers: 가격·비용·소요시간·보증 관련 숫자 표현이 있으면 그대로 인용. 없으면 빈 배열.
+   단 제조사 서비스센터 소요를 말하는 "한 달 가까이"(사장님 확인 문장)는 제외.
 출력: {"unsupported_claims":["..."],"numbers":["..."]}
 
 [초안]
