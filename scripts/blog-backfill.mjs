@@ -14,6 +14,8 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+// 본문 추출 함수는 scripts/lib/naver-blog.mjs 로 옮겨 worklog-crawl.mjs 와 공유한다(2026-09-26)
+import { UA, cleanText, extractBody, extractImages as extractImagesFor, isoDate, postViewUrl as postViewUrlFor } from "./lib/naver-blog.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, "..");
@@ -26,9 +28,9 @@ const TAG = opt("tag", `blog-backfill-${new Date().toISOString().slice(0, 10)}`)
 const IDS = opt("ids", "");
 if (!IDS) { console.error("--ids <tsv> 필요"); process.exit(1); }
 const PREVIEW = path.resolve(ROOT, "..", "infra", "tmp", "backfill_preview.json");
-const UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36";
 // 수집기(fetchBlogInnerHtml)가 iframe으로 들어가는 PC 본문 페이지 — 구 에디터 글도 postViewArea 컨테이너를 준다
-const postViewUrl = (logNo) => `https://blog.naver.com/PostView.naver?blogId=${BLOG}&logNo=${logNo}&redirect=Dlog&widgetTypeCall=true&directAccess=false`;
+const postViewUrl = (logNo) => postViewUrlFor(BLOG, logNo);
+const extractImages = (html, max = 5) => extractImagesFor(html, BLOG, max);
 const log = (...a) => console.error(new Date().toISOString().slice(11, 19), ...a);
 
 function srhToken() {
@@ -43,67 +45,11 @@ async function srh(pathname, body, tok) {
 }
 
 const toProxyUrl = (u = "") => (u ? `/api/image-proxy?url=${encodeURIComponent(u)}` : "");
-const cleanText = (s = "") => String(s).replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
 function makeBlogSummary({ title, bodyText }) {
   const t = cleanText(title);
   const core = (bodyText || t).slice(0, 120);
   return `대구 동구 중앙열쇠 작업: ${t}. ${core} (자동차키·스마트키·도어락 문의 가능)`.replace(/\s+/g, " ").slice(0, 220);
 }
-
-const BAD_TEXT = [/날씨/i, /흐림|맑음|미세먼지/, /좋은\s*하루|행복한\s*하루/, /안녕하세요|반갑습니다|감사합니다/, /구독|좋아요|댓글/, /copyright|all rights reserved/i, /네이버 톡톡|이웃추가|본문 기타 기능|MY메뉴|본문 바로가기/];
-const stripCode = (html) => html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, " ").replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, " ");
-function htmlToSentences(html, maxChars) {
-  const text = html
-    .replace(/&nbsp;|&#160;/g, " ").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;|&#034;/g, "\"")
-    .replace(/&#65279;|﻿|​/g, " ")
-    .replace(/<\/?(p|div|br|li|h[1-6]|section|article|span)[^>]*>/gi, " ")
-    .replace(/<[^>]*>/g, "")
-    .replace(/\s+/g, " ")
-    .trim();
-  const sentences = text.split(/(?<=[.!?。]|다[.!]?)\s+/).map((s) => s.trim()).filter((s) => s.length > 10 && !BAD_TEXT.some((re) => re.test(s)));
-  return sentences.join(" ").slice(0, maxChars);
-}
-// 본문 컨테이너만: 스마트에디터(se-main-container) → 구 에디터(postViewArea) → post-view{logNo}. 끝은 하단 버튼/푸터/태그.
-// script는 자르기 전에 제거 — 동영상 모듈의 data-module JSON이 컨테이너 안에 있어 끝 마커를 오인하게 만든다.
-function container(html) {
-  const h = stripCode(html);
-  const ENDS = [/class="post-btn/, /id="post_footer_contents"/, /class="post_footer/, /class="wrap_tag/, /id="commentList/, /class="blog2_post_ad/];
-  for (const startRe of [/<div[^>]+class="se-main-container"/, /<div[^>]+id="postViewArea"/, /<div[^>]+id="post-view\d+"/]) {
-    const m = h.match(startRe); if (!m) continue;
-    let end = h.length;
-    for (const er of ENDS) { const mm = h.slice(m.index + 50).match(er); if (mm) end = Math.min(end, m.index + 50 + mm.index); }
-    // 끝 마커는 태그 속성 위치라 그대로 자르면 "<div " 조각이 남는다 — 태그 시작(<) 전까지로 물린다
-    const lt = h.lastIndexOf("<", end);
-    if (lt > m.index) end = lt;
-    return h.slice(m.index, end);
-  }
-  return "";
-}
-function extractBody(html, title) {
-  let text = htmlToSentences(container(html), 1400);
-  // 일부 글은 컨테이너 앞에 "카테고리 제목 대구 중앙열쇠 ・ 2018." 머리말이 붙는다 — 제목 위치까지 잘라낸다
-  const t = cleanText(title);
-  const ti = t ? text.indexOf(t) : -1;
-  if (ti >= 0 && ti < 200) text = text.slice(ti + t.length).trim();
-  text = text.replace(/^(?:.{0,40}?중앙열쇠\s*[・·]?\s*)?\d{4}\.\s+/, "").trim();
-  return text.slice(0, 1200);
-}
-function extractImages(html, max = 5) {
-  const out = [];
-  for (const tag of container(html).match(/<img[^>]*>/gi) || []) {
-    // data-lazy-src가 원본(type=w1), src는 흐림 썸네일(w80_blur)
-    const pick = tag.match(/data-lazy-src="(https?:[^"]+)"/i) || tag.match(/\ssrc="(https?:[^"]+)"/i);
-    if (!pick) continue;
-    const u = pick[1];
-    if (!/pstatic\.net|blogfiles|postfiles/.test(u)) continue;
-    if (/static\.map|profile|sticker|blogpfthumb|\/static\/|editor-static|\.gif(\?|$)|type=w80_blur/i.test(u)) continue;
-    if (/_\d{13}/.test(u) && !u.includes(`/${BLOG}_`)) continue; // 다른 블로거 위젯/배너 이미지
-    if (!out.includes(u)) out.push(u);
-    if (out.length >= max) break;
-  }
-  return out;
-}
-const isoDate = (s) => { const m = String(s).match(/(\d{4})\.\s*(\d{1,2})\.\s*(\d{1,2})/); return m ? `${m[1]}-${m[2].padStart(2, "0")}-${m[3].padStart(2, "0")}` : ""; };
 
 const rows = fs.readFileSync(IDS, "utf8").trim().split(/\r?\n/).map((l) => l.split("\t")).filter((r) => r.length >= 3 && /^\d+$/.test(r[0]));
 log(`대상 ${rows.length}건 (${WRITE ? "기록" : "미리보기"}) tag=${TAG}`);
