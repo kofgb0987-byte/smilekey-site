@@ -67,6 +67,23 @@ function monthLabel(ym) {
 }
 
 export default function DaeguList({ items, viewMap = {}, likeMap = {}, commentMap = {}, popular = [] }) {
+  // 목록 구조화 데이터(ItemList) — 서버 렌더 시점의 글 목록을 AI 검색엔진이 한 번에 훑도록
+  const itemListJsonLd = items.length
+    ? {
+        "@context": "https://schema.org",
+        "@type": "ItemList",
+        name: "대구 소식",
+        url: `${SITE_URL}/daegu`,
+        numberOfItems: items.length,
+        itemListElement: items.map((it, i) => ({
+          "@type": "ListItem",
+          position: i + 1,
+          name: it.title,
+          url: `${SITE_URL}/daegu/${encodeURIComponent(it.id)}`,
+        })),
+      }
+    : null;
+
   return (
     <>
       <Head>
@@ -80,6 +97,12 @@ export default function DaeguList({ items, viewMap = {}, likeMap = {}, commentMa
         <meta property="og:title" content="대구 소식 | 대구 중앙열쇠" />
         <meta property="og:url" content={`${SITE_URL}/daegu`} />
         <meta property="og:type" content="website" />
+        {itemListJsonLd && (
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListJsonLd).replace(/</g, "\\u003c") }}
+          />
+        )}
       </Head>
 
       <main className="container">

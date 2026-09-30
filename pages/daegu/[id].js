@@ -191,6 +191,40 @@ export default function DaeguDetail({ item }) {
       : `${SITE_URL}${item.thumbnail}`
     : null;
 
+  // AI 검색엔진(ChatGPT·Perplexity·Copilot)이 기사로 인식·인용하도록 NewsArticle + 빵부스러기 구조화 데이터
+  // 발행일 = created_at(ISO, lib/daegu-core.js) → 없으면 date(YYYY-MM-DD, KST 자정)
+  const published = item.created_at || (item.date ? `${item.date}T00:00:00+09:00` : undefined);
+  const modified = item.updated_at || published;
+  const firstSource = sources.map((s) => String(s.link || "")).find((l) => l.startsWith("http"));
+  const org = { "@type": "Organization", name: "중앙열쇠", url: SITE_URL };
+  const newsJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "NewsArticle",
+    headline: item.title,
+    description: (item.hook || (sections[0] && sections[0].body) || item.title).slice(0, 200),
+    ...(published ? { datePublished: published, dateModified: modified } : {}),
+    inLanguage: "ko",
+    author: org,
+    publisher: org,
+    mainEntityOfPage: { "@type": "WebPage", "@id": canonical },
+    url: canonical,
+    ...(ogImage ? { image: [ogImage] } : {}),
+    ...(tags.length ? { keywords: tags.join(", ") } : {}),
+    ...(firstSource ? { isBasedOn: firstSource } : {}),
+    articleSection: "대구 소식",
+  };
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "홈", item: SITE_URL },
+      { "@type": "ListItem", position: 2, name: "대구 소식", item: `${SITE_URL}/daegu` },
+      { "@type": "ListItem", position: 3, name: item.title, item: canonical },
+    ],
+  };
+  // "<" 는 < 로 — 본문에 </script> 류 문자열이 섞여도 스크립트가 끊기지 않게
+  const ld = (o) => JSON.stringify(o).replace(/</g, "\\u003c");
+
   return (
     <>
       <Head>
@@ -203,6 +237,9 @@ export default function DaeguDetail({ item }) {
         <meta property="og:url" content={canonical} />
         <meta property="og:type" content="article" />
         {ogImage && <meta property="og:image" content={ogImage} />}
+        {published && <meta property="article:published_time" content={published} />}
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: ld(newsJsonLd) }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: ld(breadcrumbJsonLd) }} />
       </Head>
 
       <main className="container">

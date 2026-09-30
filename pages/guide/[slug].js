@@ -32,6 +32,19 @@ export default function GuidePage({ post, recentCases, keyNotice }) {
   const desc = `${post.hook || post.title} – 대구 동구 중앙열쇠 실제 작업 기록 기반 안내`.replace(/\s+/g, " ").slice(0, 155);
   const dateIso = post.generated_at || new Date().toISOString();
 
+  // "한 줄 답" — AI 답변엔진은 질문에 바로 답하는 첫 단락을 인용한다.
+  // hook이 답처럼 읽히면(서술형 어미, 30자 이상, "~기록/안내/정리" 같은 페이지 설명문 제외) 그대로,
+  // 아니면 첫 FAQ 답변을 ~160자로 자른다(55편 기준 2편 hook·53편 FAQ). 본문 재생성 없음.
+  const hook = (post.hook || "").trim();
+  const hookIsAnswer =
+    hook.length >= 30 &&
+    /(입니다|합니다|됩니다|드립니다|순서|방법|구분법|이유)[.。]?$/.test(hook) &&
+    !/(기록|안내|정리|사례|소개|모았)/.test(hook);
+  const firstFaq = Array.isArray(post.faq) && post.faq.length ? post.faq[0] : null;
+  const clip = (s, n = 160) => (s.length > n ? s.slice(0, n).replace(/\s+\S*$/, "") + "…" : s);
+  const oneLine = hookIsAnswer ? hook : firstFaq ? clip(String(firstFaq.a || "").replace(/\s+/g, " ").trim()) : hook;
+  const oneLineQ = !hookIsAnswer && firstFaq ? firstFaq.q : null;
+
   const articleJsonLd = {
     "@context": "https://schema.org",
     "@type": "Article",
@@ -91,6 +104,14 @@ export default function GuidePage({ post, recentCases, keyNotice }) {
         <div style={{ marginTop: 8, fontSize: 13 }}>
           <Link href="/guide" style={{ opacity: 0.75 }}>← 안내 가이드 목록</Link>
         </div>
+
+        {oneLine ? (
+          <section className="card" style={{ marginBottom: "1rem", borderLeft: "4px solid #1e40af", background: "#f8fafc" }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: "#1e40af", marginBottom: 4 }}>한 줄 답</div>
+            {oneLineQ ? <p style={{ fontWeight: 600, margin: "0 0 4px", fontSize: "0.95rem" }}>Q. {oneLineQ}</p> : null}
+            <p style={{ margin: 0, lineHeight: 1.7, color: "#111827" }}>{oneLine}</p>
+          </section>
+        ) : null}
 
         <section className="card" style={{ marginBottom: "1rem" }}>
           <a href={`tel:${PHONE}`} className="call-button">📞 {PHONE}</a>
