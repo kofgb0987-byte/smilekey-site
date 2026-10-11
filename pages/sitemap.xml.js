@@ -14,6 +14,18 @@ function urlEntry({ loc, lastmod, changefreq, priority }) {
   </url>`;
 }
 
+// 저장된 date 는 RSS 형식("Thu, 15 Jan 2026")이 대부분이라 slice(0,10)으로 자르면 NaN → 293개 글이 전부 "오늘"로 나갔다(2026-10-11 수정).
+// 전체 문자열을 Date 로 파싱해 YYYY-MM-DD 로 만들고, 정말 없을 때만 today.
+function toDay(raw) {
+  const s = String(raw || "").trim();
+  if (!s) return "";
+  if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0, 10);
+  const d = new Date(s);
+  if (isNaN(d)) return "";
+  // toISOString 은 UTC 로 바꿔 KST 자정 전후가 하루 밀린다 → 로컬 날짜 부품으로 조립
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
 export async function getServerSideProps({ res }) {
   const today = new Date().toISOString().slice(0, 10);
 
@@ -27,8 +39,7 @@ export async function getServerSideProps({ res }) {
         try {
           const it = await getSummary(id);
           if (!it || !Object.keys(it).length) return null;
-          const rawDate = (it.date || "").trim().slice(0, 10);
-          const date = rawDate && !isNaN(new Date(rawDate)) ? rawDate : today;
+          const date = toDay(it.date) || today;
           return { id, date };
         } catch {
           return { id, date: today };
@@ -47,8 +58,7 @@ export async function getServerSideProps({ res }) {
         try {
           const it = await getDaeguPost(id);
           if (!it || !Object.keys(it).length) return null;
-          const rawDate = (it.date || "").trim().slice(0, 10);
-          const date = rawDate && !isNaN(new Date(rawDate)) ? rawDate : today;
+          const date = toDay(it.date) || today;
           return { id, date };
         } catch {
           return { id, date: today };
