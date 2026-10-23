@@ -30,7 +30,7 @@ export async function getStaticProps({ params }) {
   const guide = findGuideForTitle(item.title);
   return {
     props: { item: { ...item, id }, guide },
-    revalidate: 3600,
+    revalidate: 86400, // 2026-10-23: 3600→86400. 요약은 저장 후 안 바뀌고 sync-summaries 가 저장한 글은 on-demand revalidate — Hobby Fluid CPU 78% 대응
   };
 }
 

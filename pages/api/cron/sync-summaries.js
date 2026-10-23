@@ -277,7 +277,8 @@ export default async function handler(req, res) {
 
     // ISR 주기를 1시간으로 늘린 대신(2026-10-23) 크론이 끝날 때 홈·아카이브를 바로 다시 만든다 — 새 글 유무와 무관하게 항상.
     const revalidated = [];
-    for (const path of ["/", "/archive"]) {
+    // 저장된 글의 상세 페이지도 함께(최대 20개) — 상세 ISR 이 24h 라 바뀐 요약이 늦게 반영되지 않도록(2026-10-23)
+    for (const path of ["/", "/archive", ...savedIds.slice(0, 20).map((id) => `/archive/${id}`)]) {
       try {
         await res.revalidate(path);
         revalidated.push(path);

@@ -21,10 +21,13 @@ export default async function handler(req, res) {
 
   await deleteDaeguPost(id);
 
-  try {
-    await res.revalidate("/daegu");
-  } catch (e) {
-    console.error("revalidate error:", e);
+  // 목록과 함께 상세 페이지도 즉시 재검증 — 상세 ISR 이 24h 라 지우지 않으면 하루 동안 남는다(2026-10-23)
+  for (const path of ["/daegu", `/daegu/${id}`]) {
+    try {
+      await res.revalidate(path);
+    } catch (e) {
+      console.error("revalidate error:", path, e);
+    }
   }
   const sitemap = await rebuildSitemapSafe("daegu delete"); // 삭제된 URL이 사이트맵에서 바로 빠지게
 

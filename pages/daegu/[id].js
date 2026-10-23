@@ -38,7 +38,8 @@ export async function getStaticProps({ params }) {
   // Redis 일시 장애는 throw로 기존 캐시 유지 — catch→notFound는 404 영구 박제(8/5 archive 실사고)
   const item = await getDaeguPost(params.id);
   if (!item || !item.title) return { notFound: true, revalidate: 60 };
-  return { props: { item: { ...item, id: params.id } }, revalidate: 3600 };
+  // 2026-10-23: 3600→86400. 글은 발행 후 안 바뀌고, 이미지 교체·삭제는 크론이 on-demand revalidate — Hobby Fluid CPU 78% 대응
+  return { props: { item: { ...item, id: params.id } }, revalidate: 86400 };
 }
 
 export default function DaeguDetail({ item }) {
