@@ -4,6 +4,7 @@ import { XMLParser } from "fast-xml-parser";
 import { saveSummary } from "../../../lib/redis";
 import { aiSummarize3 } from "../../../lib/ai";
 import { pingIndexNow } from "../../../lib/indexnow";
+import { rebuildSitemapSafe } from "../../../lib/sitemap";
 
 async function fetchHtml(url) {
   const res = await fetch(url, {
@@ -274,7 +275,20 @@ export default async function handler(req, res) {
       ]);
     }
 
-    return res.status(200).json({ ok: true, saved, ...(indexnow.length ? { indexnow } : {}) });
+    // ISR 주기를 1시간으로 늘린 대신(2026-10-23) 크론이 끝날 때 홈·아카이브를 바로 다시 만든다 — 새 글 유무와 무관하게 항상.
+    const revalidated = [];
+    for (const path of ["/", "/archive"]) {
+      try {
+        await res.revalidate(path);
+        revalidated.push(path);
+      } catch (e) {
+        console.error("revalidate error:", path, e);
+      }
+    }
+    // 사이트맵은 하루 1번 여기서 만들어 Redis에 저장(요청 시엔 GET 1번)
+    const sitemap = await rebuildSitemapSafe("sync-summaries");
+
+    return res.status(200).json({ ok: true, saved, revalidated, sitemap, ...(indexnow.length ? { indexnow } : {}) });
   } catch (e) {
     console.error("cron sync error:", e);
     return res.status(500).json({ ok: false, error: String(e) });

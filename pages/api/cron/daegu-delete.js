@@ -2,6 +2,7 @@
 // 호출: POST /api/cron/daegu-delete?id={postId}
 //       Authorization: Bearer {CRON_SECRET}
 import { deleteDaeguPost, getDaeguPost } from "../../../lib/redis";
+import { rebuildSitemapSafe } from "../../../lib/sitemap";
 
 export default async function handler(req, res) {
   const auth = req.headers.authorization || "";
@@ -25,6 +26,7 @@ export default async function handler(req, res) {
   } catch (e) {
     console.error("revalidate error:", e);
   }
+  const sitemap = await rebuildSitemapSafe("daegu delete"); // 삭제된 URL이 사이트맵에서 바로 빠지게
 
-  return res.status(200).json({ ok: true, deleted: id, title: existing.title });
+  return res.status(200).json({ ok: true, deleted: id, title: existing.title, sitemap });
 }

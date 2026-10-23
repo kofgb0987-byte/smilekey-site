@@ -50,7 +50,7 @@ export async function getStaticProps() {
 
   return {
     props: { items, viewMap, likeMap, commentMap, popular },
-    revalidate: 600,
+    revalidate: 3600, // 2026-10-23: 600→3600. 새 글은 finalizePost 가 즉시 revalidate
   };
 }
 

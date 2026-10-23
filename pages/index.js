@@ -379,6 +379,6 @@ export async function getStaticProps() {
       blogItems,
       archiveItems,
     },
-    revalidate: 300,
+    revalidate: 3600, // 2026-10-23: 300→3600. 21:00 UTC 크론(sync-summaries)이 끝나면 즉시 revalidate 하므로 신선도 유지
   };
 }

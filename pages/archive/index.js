@@ -17,7 +17,7 @@ export async function getStaticProps() {
 
   return {
     props: { items: itemsRaw.filter(Boolean) },
-    revalidate: 300,
+    revalidate: 3600, // 2026-10-23: 300→3600. 새 요약은 sync-summaries 가 즉시 revalidate
   };
 }
 
