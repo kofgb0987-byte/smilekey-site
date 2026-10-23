@@ -30,15 +30,23 @@ export async function getStaticProps() {
   const likeMap = await getDaeguLikeMap(items.map((it) => it.id));
   const commentMap = await getDaeguCommentCountMap(items.map((it) => it.id));
   const byId = new Map(items.map((it) => [it.id, it]));
-  const popular = (await topDaeguViewIdsWeekly(3))
-    .filter(({ id }) => byId.has(id))
-    .map(({ id, views }) => ({
-      id,
-      views,
-      title: byId.get(id).title,
-      date: byId.get(id).date || "", // 인기글도 목록처럼 발행일이 보이게
-      likes: likeMap[id] || 0,
-    }));
+  // 주간 상위 글은 최신 50개 목록 밖의 옛 글인 경우가 대부분(네이버 유입 글이 8~9월 글)이라
+  // 목록으로 거르지 말고 글을 직접 읽는다. 2026-10-23까지는 전부 걸러져 섹션이 늘 비어 있었다.
+  const candidates = await topDaeguViewIdsWeekly(10);
+  const popularRaw = await Promise.all(
+    candidates.map(async ({ id, views }) => {
+      const post = byId.get(id) || (await getDaeguPost(id));
+      if (!post || !post.title) return null; // 삭제된 글은 제외
+      return {
+        id,
+        views,
+        title: post.title,
+        date: post.date || "", // 인기글도 목록처럼 발행일이 보이게
+        likes: likeMap[id] ?? (await getDaeguLikeMap([id]))[id] ?? 0,
+      };
+    })
+  );
+  const popular = popularRaw.filter(Boolean).slice(0, 3);
 
   return {
     props: { items, viewMap, likeMap, commentMap, popular },
