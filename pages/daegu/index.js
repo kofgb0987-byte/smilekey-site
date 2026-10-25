@@ -11,10 +11,33 @@ import {
   getDaeguWeeklyViewMap,
 } from "../../lib/redis";
 
-// 🔥 핫지수 — 최근 7일 조회수. 일별 버킷(8일 TTL)이 소스라 그 이상 기간은 못 센다.
-function hotBadge(weekly) {
-  if (!weekly) return null;
-  const level = weekly >= 10 ? 3 : weekly >= 4 ? 2 : 1;
+// 🔥 핫지수 — 최근 7일 조회수(일별 버킷, 8일 TTL)를 목록 안에서 상대평가.
+//   전부에 불을 붙이면 변별력이 없어서 목록 상위 HOT_MAX개(주간 2회 이상)만 뱃지,
+//   세기는 1위 대비 비율(70%↑ 3, 35%↑ 2)과 절대 횟수(10회↑ 3, 5회↑ 2) 중 낮은 쪽 —
+//   전부 2회로 동점인 날 다섯 개가 다 🔥🔥🔥가 되는 것 방지.
+const HOT_MAX = 5;
+const HOT_MIN_VIEWS = 2;
+function buildHotMap(items, weeklyMap) {
+  const ranked = items
+    .map((it) => ({ id: it.id, views: weeklyMap[it.id] || 0 }))
+    .filter((x) => x.views >= HOT_MIN_VIEWS)
+    .sort((a, b) => b.views - a.views)
+    .slice(0, HOT_MAX);
+  if (!ranked.length) return {};
+  const max = ranked[0].views;
+  const hot = {};
+  for (const { id, views } of ranked) {
+    const r = views / max;
+    const byRatio = r >= 0.7 ? 3 : r >= 0.35 ? 2 : 1;
+    const byAbs = views >= 10 ? 3 : views >= 5 ? 2 : 1;
+    hot[id] = { views, level: Math.min(byRatio, byAbs) };
+  }
+  return hot;
+}
+
+function hotBadge(hot) {
+  if (!hot) return null;
+  const { views: weekly, level } = hot;
   const palette = {
     1: { bg: "rgba(255,140,0,0.12)", fg: "#b35a00" },
     2: { bg: "rgba(255,90,0,0.16)", fg: "#a63a00" },
@@ -82,7 +105,7 @@ export async function getStaticProps() {
   const popular = popularRaw.filter(Boolean).slice(0, 3);
 
   return {
-    props: { items, viewMap, likeMap, commentMap, popular, weeklyMap },
+    props: { items, viewMap, likeMap, commentMap, popular, hotMap: buildHotMap(items, weeklyMap) },
     revalidate: 3600, // 2026-10-23: 600→3600. 새 글은 finalizePost 가 즉시 revalidate
   };
 }
@@ -113,7 +136,7 @@ export default function DaeguList({
   likeMap = {},
   commentMap = {},
   popular = [],
-  weeklyMap = {},
+  hotMap = {},
 }) {
   // 목록 구조화 데이터(ItemList) — 서버 렌더 시점의 글 목록을 AI 검색엔진이 한 번에 훑도록
   const itemListJsonLd = items.length
@@ -236,7 +259,7 @@ export default function DaeguList({
                     <div style={{ minWidth: 0 }}>
                       <div style={{ fontWeight: 700, fontSize: 16 }}>
                         {it.title}
-                        {hotBadge(weeklyMap[it.id])}
+                        {hotBadge(hotMap[it.id])}
                       </div>
                       {it.hook ? (
                         <div style={{ marginTop: 4, fontSize: 14, opacity: 0.85 }}>{it.hook}</div>
