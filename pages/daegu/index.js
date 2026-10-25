@@ -8,7 +8,39 @@ import {
   getDaeguLikeMap,
   getDaeguCommentCountMap,
   topDaeguViewIdsWeekly,
+  getDaeguWeeklyViewMap,
 } from "../../lib/redis";
+
+// 🔥 핫지수 — 최근 7일 조회수. 일별 버킷(8일 TTL)이 소스라 그 이상 기간은 못 센다.
+function hotBadge(weekly) {
+  if (!weekly) return null;
+  const level = weekly >= 10 ? 3 : weekly >= 4 ? 2 : 1;
+  const palette = {
+    1: { bg: "rgba(255,140,0,0.12)", fg: "#b35a00" },
+    2: { bg: "rgba(255,90,0,0.16)", fg: "#a63a00" },
+    3: { bg: "rgba(230,30,0,0.18)", fg: "#8f1400" },
+  }[level];
+  return (
+    <span
+      title={`최근 7일 조회 ${weekly}회`}
+      style={{
+        display: "inline-block",
+        marginLeft: 8,
+        padding: "1px 7px",
+        borderRadius: 999,
+        fontSize: 12,
+        fontWeight: 700,
+        lineHeight: "18px",
+        verticalAlign: "middle",
+        whiteSpace: "nowrap",
+        background: palette.bg,
+        color: palette.fg,
+      }}
+    >
+      {"🔥".repeat(level)} {weekly}
+    </span>
+  );
+}
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://smilekey.me";
 // 🔒 품질 검증 기간 동안 noindex 유지. 콘텐츠 품질 확인 후 true로 바꾸고 sitemap에도 추가할 것.
@@ -32,7 +64,8 @@ export async function getStaticProps() {
   const byId = new Map(items.map((it) => [it.id, it]));
   // 주간 상위 글은 최신 50개 목록 밖의 옛 글인 경우가 대부분(네이버 유입 글이 8~9월 글)이라
   // 목록으로 거르지 말고 글을 직접 읽는다. 2026-10-23까지는 전부 걸러져 섹션이 늘 비어 있었다.
-  const candidates = await topDaeguViewIdsWeekly(10);
+  const weeklyMap = await getDaeguWeeklyViewMap(7); // 목록 전체 핫지수 + 인기글 후보 공용
+  const candidates = await topDaeguViewIdsWeekly(10, 7, weeklyMap);
   const popularRaw = await Promise.all(
     candidates.map(async ({ id, views }) => {
       const post = byId.get(id) || (await getDaeguPost(id));
@@ -49,7 +82,7 @@ export async function getStaticProps() {
   const popular = popularRaw.filter(Boolean).slice(0, 3);
 
   return {
-    props: { items, viewMap, likeMap, commentMap, popular },
+    props: { items, viewMap, likeMap, commentMap, popular, weeklyMap },
     revalidate: 3600, // 2026-10-23: 600→3600. 새 글은 finalizePost 가 즉시 revalidate
   };
 }
@@ -74,7 +107,14 @@ function monthLabel(ym) {
   return y && m ? `${y}년 ${parseInt(m, 10)}월` : "날짜 미상";
 }
 
-export default function DaeguList({ items, viewMap = {}, likeMap = {}, commentMap = {}, popular = [] }) {
+export default function DaeguList({
+  items,
+  viewMap = {},
+  likeMap = {},
+  commentMap = {},
+  popular = [],
+  weeklyMap = {},
+}) {
   // 목록 구조화 데이터(ItemList) — 서버 렌더 시점의 글 목록을 AI 검색엔진이 한 번에 훑도록
   const itemListJsonLd = items.length
     ? {
@@ -194,7 +234,10 @@ export default function DaeguList({ items, viewMap = {}, likeMap = {}, commentMa
                       />
                     ) : null}
                     <div style={{ minWidth: 0 }}>
-                      <div style={{ fontWeight: 700, fontSize: 16 }}>{it.title}</div>
+                      <div style={{ fontWeight: 700, fontSize: 16 }}>
+                        {it.title}
+                        {hotBadge(weeklyMap[it.id])}
+                      </div>
                       {it.hook ? (
                         <div style={{ marginTop: 4, fontSize: 14, opacity: 0.85 }}>{it.hook}</div>
                       ) : null}
