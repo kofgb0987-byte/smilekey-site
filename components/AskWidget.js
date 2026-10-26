@@ -8,6 +8,14 @@ const POLL_MS = 2500;
 const POLL_MAX_MS = 100_000;
 const STORE = "smilekey-ask";
 
+// 답변 본문의 주소(최근 작업 사례 글)를 누를 수 있게 — 워커 guard 가 사이트·사례 글 주소만 남긴다
+const linkify = (text) =>
+  String(text || "").split(/(https?:\/\/[^\s]+)/g).map((part, i) =>
+    /^https?:\/\//.test(part)
+      ? <a key={i} href={part} target="_blank" rel="noopener" onClick={() => ga("ask_case_link")} style={{ color: "#1e40af", textDecoration: "underline", wordBreak: "break-all" }}>{part}</a>
+      : part
+  );
+
 const ga = (name, params = {}) => {
   if (typeof window !== "undefined" && typeof window.gtag === "function") window.gtag("event", name, { event_category: "ask", ...params });
 };
@@ -172,7 +180,7 @@ export default function AskWidget() {
           {state === "ready" && answer && (
             <div style={{ padding: "4px 0" }}>
               <div style={{ background: "#f3f4f6", borderRadius: 10, padding: 10, fontSize: 13, color: "#374151", marginBottom: 10 }}>{question}</div>
-              <div style={{ whiteSpace: "pre-wrap" }}>{answer.reply}</div>
+              <div style={{ whiteSpace: "pre-wrap" }}>{linkify(answer.reply)}</div>
               {answer.link && (
                 <p style={{ margin: "8px 0 0", fontSize: 13 }}>
                   <a href={answer.link} style={{ color: "#1e40af", textDecoration: "underline" }}>자세한 안내 글 보기 →</a>

@@ -11,6 +11,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { spawn } from "node:child_process";
+import crypto from "node:crypto";
 import { fileURLToPath } from "node:url";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -161,7 +162,8 @@ function findCases(question) {
     notes.length ? "기록된 제약·특이사항:" : "",
     ...notes.map((r) => `- ${r.brand} ${r.model || ""}: ${r.notes}`),
   ].filter(Boolean);
-  return { count: cases.length, posts: rows.length, brands, hits, text: lines.join("\n").slice(0, 1500) };
+  const recent = cases.find((r) => r.link) || null; // 최근 같은 차종 사례 글 — 답변에 링크로 붙인다
+  return { count: cases.length, posts: rows.length, brands, hits, recent, text: lines.join("\n").slice(0, 1500) };
 }
 function tokens(s) {
   const out = new Set();
@@ -199,6 +201,16 @@ const guideText = (p) => {
   return `### ${p.title} (${SITE}/guide/${p.slug})\n${p.hook || ""}\n${secs}\n${faq}`;
 };
 
+/** 블로그 글의 사이트 archive 주소(sync-summaries 가 RSS 링크의 sha1 로 저장) — 요약이 있으면 사이트 주소, 없으면 블로그 원문 */
+async function caseLinkOf(c) {
+  if (!c || !c.link) return "";
+  try {
+    const id = crypto.createHash("sha1").update(`blog:${c.link}?fromRss=true&trackingCode=rss`).digest("hex");
+    if ((await redis(["SISMEMBER", "smilekey:summary_ids:v1", id])) === 1) return `${SITE}/archive/${id}`;
+  } catch (e) { log("archive 확인 실패:", e.message); }
+  return c.link;
+}
+
 // ---------- 모델 호출 ----------
 function claude(prompt) {
   return new Promise((resolve, reject) => {
@@ -213,7 +225,7 @@ function claude(prompt) {
   });
 }
 
-function buildPrompt(q, guides, cases) {
+function buildPrompt(q, guides, cases, caseLink = "") {
   return `너는 대구 동구 열쇠집 "중앙열쇠" 사이트의 상담 도우미다. 방문자 질문에 한국어 존댓말로 짧게 답한다.
 도구와 파일 접근은 없다. 아래에 붙인 업체 정보·작업 기록·안내 가이드 안에서만 답하고, 거기에 없는 내용은 "전화로 확인해 드리겠다"고 한다.
 
@@ -229,6 +241,7 @@ ${KEY_FACTS}
 
 [작업 기록 — 이 가게가 블로그에 남긴 실제 작업일지(2009~2026, 실제 사례 ${TOTAL_CASES}건)에서 같은 차종을 찾은 것]
 ${cases ? cases.text : "질문에서 차종·브랜드를 찾지 못했거나 같은 차종 기록이 없음. '기록이 없다'고 말하지 말고, 차종·연식을 알려주면 확인이 빠르다고 한다."}
+${caseLink ? `최근 같은 차종 작업 글(${cases.recent.date}): ${caseLink}` : ""}
 
 [관련 안내 가이드 — 우리 사이트의 검증된 글]
 ${guides.map(guideText).join("\n\n")}
@@ -244,7 +257,8 @@ ${guides.map(guideText).join("\n\n")}
 6. 방문자가 남을 대신해 여는 것처럼 보이거나 소유권이 의심되는 질문이면 FLAG를 unsafe로 하고, 답변은 소유자 확인 안내만 한다.
 
 [답변 요령]
-- 3~6문장. 뼈대는 ① 질문 상황에 대한 핵심 답 → ② 같은 차종 작업 기록이 있으면 그 근거 한두 문장(건수·최근 시기·어떻게 했는지) → ③ 가능 여부·비용·시간은 전화로 차량 정보를 확인한 뒤 안내한다는 결론. 마지막 문장은 반드시 전화(${PHONE})나 문자로 유도한다. 급한 상황(잠김·분실·방전)이면 첫 문장부터 전화를 권한다.
+- 3~5문장을 2~3개의 짧은 문단으로 나누고 문단 사이는 빈 줄 하나로 띄운다. 뼈대는 ① 질문 상황에 대한 핵심 답 → ② 같은 차종 작업 기록이 있으면 근거 한 문장(건수와 최근 시기 중 하나만, 어떻게 했는지는 짧게) → ③ 가능 여부·비용·시간은 전화로 차량 정보를 확인한 뒤 안내한다는 결론. 마지막 문장은 반드시 전화(${PHONE})나 문자로 유도한다. 급한 상황(잠김·분실·방전)이면 첫 문장부터 전화를 권한다.
+- 위에 "최근 같은 차종 작업 글" 주소가 있으면 ② 문장 바로 다음 줄에 "최근 작업 글: 주소" 한 줄을 그대로 넣는다. 그 외 주소는 답변에 쓰지 않는다.
 - 어조는 동네 열쇠집 사장님이 손님에게 말하듯 부드럽고 친절하게. 못 하는 것(개방 방법·금액)을 말할 때도 "안 됩니다"로 끊지 말고 이유와 대안(전화 안내·현장 방문)을 함께 준다.
 - 마크다운·이모지·머리기호 없이 평문. "고객님" 호칭은 쓰지 않는다.
 - 관련 가이드가 실제로 도움이 되면 그 주소 하나를 LINK에 넣고, 아니면 비운다.
@@ -267,16 +281,22 @@ function parseAnswer(raw) {
 const looksLikeToolTranscript = (s) => /\*\*Tool (Use|Result)/.test(s) || /^I'll (check|look|list|search)/im.test(s) || (!/\[REPLY\]/.test(s) && /```/.test(s));
 
 /** 프롬프트를 뚫고 나온 금액·개방 요령을 마지막에 걸러낸다 */
-function guard(reply, flag) {
+function guard(reply, flag, caseLink = "") {
   const SAFE_OPEN = `문을 여는 방법은 안전을 위해 안내해 드리기 어렵지만, 정당한 소유자 확인 후 현장에서 안전하게 열어 드리고 있습니다. 위치와 상황을 전화(${PHONE})로 알려주시면 바로 안내드리겠습니다.`;
   if (flag === "unsafe") return SAFE_OPEN;
   let out = reply.replace(/\*\*|__|^#+\s*/gm, "").replace(/^[-•]\s*/gm, "").trim();
   // 금액 문장 제거 → 표준 문장으로 교체
   const PRICE = /\d[\d,.]*\s*(만\s*)?원|₩\s*\d|\d+\s*만\s*(~|-|에서)?\s*\d*\s*만?\s*원?/;
-  const sentences = out.split(/(?<=[.!?다])\s+/);
-  const kept = sentences.filter((s) => !PRICE.test(s));
-  if (kept.length !== sentences.length) kept.push(`정확한 비용은 차종과 현장 상황에 따라 달라 전화(${PHONE})로 바로 안내드립니다.`);
-  out = kept.join(" ");
+  let dropped = false;
+  out = out.split(/\n/).map((line) => {
+    const sentences = line.split(/(?<=[.!?다])\s+/);
+    const kept = sentences.filter((s) => !PRICE.test(s));
+    if (kept.length !== sentences.length) dropped = true;
+    return kept.join(" ");
+  }).join("\n").replace(/\n{3,}/g, "\n\n").replace(/[ \t]+\n/g, "\n").trim();
+  if (dropped) out += ` 정확한 비용은 차종과 현장 상황에 따라 달라 전화(${PHONE})로 바로 안내드립니다.`;
+  // 허용된 주소(사례 글·사이트)만 남긴다 — 모델이 지어낸 주소 차단
+  out = out.replace(/https?:\/\/\S+/g, (u) => (u === caseLink || u.startsWith(SITE + "/") ? u : "")).replace(/최근 작업 글:\s*(\n|$)/g, "").replace(/[ \t]+\n/g, "\n").trim();
   // 개방 요령 서술 감지(9V 비상전원 예외)
   if (/(문|차문|도어락|잠금).{0,15}(여는|열리는|따는|해제하는|푸는)\s*(방법|요령|순서)/.test(out) && !/9V|비상전원/.test(out)) return SAFE_OPEN;
   // 결론이 전화 확인으로 끝나지 않으면 붙인다(사장님 방침: 가능 여부·비용은 전화로)
@@ -288,10 +308,11 @@ function guard(reply, flag) {
 async function handle(q) {
   const guides = findGuides(q.question);
   const cases = findCases(q.question);
+  const caseLink = cases ? await caseLinkOf(cases.recent) : "";
   let raw;
   try {
-    raw = await claude(buildPrompt(q, guides, cases));
-    if (looksLikeToolTranscript(raw)) raw = await claude(buildPrompt(q, guides, cases) + "\n\n다시: 도구 없이, 위 형식([REPLY]/[LINK]/[FLAG])만 출력한다.");
+    raw = await claude(buildPrompt(q, guides, cases, caseLink));
+    if (looksLikeToolTranscript(raw)) raw = await claude(buildPrompt(q, guides, cases, caseLink) + "\n\n다시: 도구 없이, 위 형식([REPLY]/[LINK]/[FLAG])만 출력한다.");
   } catch (e) {
     log("모델 실패:", e.message);
     raw = "";
@@ -301,7 +322,7 @@ async function handle(q) {
   const failed = !parts.reply;
   const reply = failed
     ? `지금은 자동 답변이 어렵습니다. 질문은 접수되었으니, 급하시면 ${PHONE}로 전화 주시면 바로 안내드리겠습니다.`
-    : guard(parts.reply, parts.flag);
+    : guard(parts.reply, parts.flag, caseLink);
 
   if (!DRY && q.id) {
     try { await redis(["SET", `smilekey:ask:answer:${q.id}`, JSON.stringify({ reply, link: parts.link }), "EX", String(ANSWER_TTL)]); }
